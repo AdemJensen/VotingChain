@@ -1,0 +1,15 @@
+{
+  "server": {
+    "port": 8080
+  },
+  "db": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "root",
+    "password": "12345678"
+  },
+  "blockchain": {
+    "rpcHost": "http://127.0.0.1:7545",
+    "chainID": 1337
+  }
+}
