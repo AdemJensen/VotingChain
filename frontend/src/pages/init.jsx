@@ -4,7 +4,6 @@ import { API_BASE_URL } from "../utils/backend.js";
 
 const Init = () => {
     const [walletAddress, setWalletAddress] = useState("");
-    const [privateKey, setPrivateKey] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
@@ -25,8 +24,8 @@ const Init = () => {
     };
 
     const initRootUser = async () => {
-        if (!walletAddress || !privateKey) {
-            setMessage("Please enter a valid private key and connect MetaMask");
+        if (!walletAddress) {
+            setMessage("Please connect MetaMask");
             return;
         }
 
@@ -34,20 +33,56 @@ const Init = () => {
         setMessage("");
 
         try {
-            const response = await fetch(`${API_BASE_URL}/init`, {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            const web3 = new Web3(window.ethereum);
+
+            const response = await fetch(`${API_BASE_URL}/init-build`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    wallet_address: walletAddress,
-                    private_key: privateKey
+                    wallet_address: walletAddress
                 })
             });
 
             const data = await response.json();
-            if (response.ok) {
-                setMessage(`✅ Success! NFT Contract: ${data.nft_contract}`);
-            } else {
+            if (!response.ok) {
                 setMessage(`❌ Error: ${data.error}`);
+                setLoading(false);
+                return;
+            }
+            const txJsonStr = data.tx;
+            const tx = JSON.parse(txJsonStr);
+            const txObject = {
+                from: account,
+                gas: web3.utils.toHex(tx.gas),
+                gasPrice: web3.utils.toHex(tx.gasPrice),
+                value: web3.utils.toHex(tx.value),
+                data: tx.input,
+                nonce: web3.utils.toHex(tx.nonce),
+            };
+            console.log("Transaction to be sent:", txObject);
+
+            // 3. Send transaction via MetaMask
+            const txHash = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [txObject],
+            });
+
+            const response2 = await fetch(`${API_BASE_URL}/init-exec`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    wallet_address: walletAddress,
+                    tx_hash: txHash
+                })
+            });
+
+            const data2 = await response2.json();
+            if (response.ok) {
+                setMessage(`✅ Success! NFT Contract: ${data2.nft_contract}`);
+            } else {
+                setMessage(`❌ Error: ${data2.error}`);
             }
         } catch (error) {
             setMessage(`❌ Error: ${error.message}`);
@@ -59,20 +94,16 @@ const Init = () => {
     return (
         <div style={styles.overlay}>
             <div style={styles.box}>
-                <h1 style={styles.title}>Initialize Root User</h1>
+                <h1 style={styles.title}>System Initialization</h1>
                 <p style={styles.text}>
-                    This process will set up the blockchain voting system and deploy the main NFT contract.
+                    Congratulations, the voting system has been successfully deployed!
+                </p>
+                <p style={styles.text}>
+                    Now, you need to link your Ethereum account to the system to create a root user in the system. This process will setup the database tables and deploy the main NFT contract.
                 </p>
                 <button onClick={connectMetaMask} style={styles.button}>
                     {walletAddress ? `Connected: ${walletAddress}` : "Connect MetaMask"}
                 </button>
-                <input
-                    type="password"
-                    placeholder="Enter Private Key"
-                    value={privateKey}
-                    onChange={(e) => setPrivateKey(e.target.value)}
-                    style={styles.input}
-                />
                 <button onClick={initRootUser} disabled={loading} style={styles.buttonPrimary}>
                     {loading ? "Initializing..." : "Initialize Root User"}
                 </button>
@@ -108,14 +139,16 @@ const styles = {
         textAlign: "center",
     },
     title: {
-        fontSize: "24px",
-        fontWeight: "bold",
+        fontSize: "36px",
         marginBottom: "10px",
+        color: "black",
     },
     text: {
         fontSize: "16px",
         marginBottom: "20px",
         color: "#666",
+        textAlign: "left",
+        width: "100%",
     },
     button: {
         padding: "10px 20px",

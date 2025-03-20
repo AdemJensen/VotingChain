@@ -73,9 +73,14 @@ func DeployContract(ctx context.Context, privateKey string, contractName string,
 	return contractAddr[2:], tx, nil
 }
 
-// DeployVotingNFT 部署 VotingNFT 合约
-func DeployVotingNFT(ctx context.Context, privateKey string) (string, *types.Transaction, error) {
-	return DeployContract(ctx, privateKey, ContractVotingNFT)
+// CreateVotingNFTDeploymentTx 创建 VotingNFT 合约部署交易
+func CreateVotingNFTDeploymentTx(ctx context.Context, ownerAddr string) (*types.Transaction, error) {
+	client, err := NewEthClient()
+	if err != nil {
+		//log.Fatal("Failed to connect to Ethereum client:", err)
+		return nil, errors.Wrapf(err, "New client err")
+	}
+	return CreateContractDeploymentTx(ctx, client, ownerAddr, ContractVotingNFT)
 }
 
 // DeployVoting 部署 Voting 合约

@@ -63,6 +63,14 @@ func StringifyTx(tx *types.Transaction) (string, error) {
 	return hex.EncodeToString(str), nil
 }
 
+func JsonifyTx(tx *types.Transaction) (string, error) {
+	str, err := tx.MarshalJSON()
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to jsonify transaction")
+	}
+	return string(str), nil
+}
+
 func DecodeTx(txData string) (*types.Transaction, error) {
 	txBytes, err := hex.DecodeString(txData)
 	if err != nil {
@@ -86,7 +94,7 @@ func ExecuteContractDeploymentTx(ctx context.Context, client *ethclient.Client, 
 	txHash := tx.Hash()
 
 	// **等待交易上链，获取交易回执**
-	receipt, err := waitForTransactionReceipt(client, txHash)
+	receipt, err := WaitForTransactionReceipt(client, txHash)
 	if err != nil {
 		return "", "", errors.Wrapf(err, "Failed to get transaction receipt")
 	}
@@ -97,8 +105,8 @@ func ExecuteContractDeploymentTx(ctx context.Context, client *ethclient.Client, 
 	return tx.Hash().Hex(), contractAddress, nil
 }
 
-// **等待交易上链**
-func waitForTransactionReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
+// WaitForTransactionReceipt 等待交易上链
+func WaitForTransactionReceipt(client *ethclient.Client, txHash common.Hash) (*types.Receipt, error) {
 	ctx := context.Background()
 	for {
 		receipt, err := client.TransactionReceipt(ctx, txHash)

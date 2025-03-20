@@ -21,8 +21,11 @@ func main() {
 		MaxAge:           12 * time.Hour, // 12小时内不需要重复请求 CORS
 	}))
 
-	// 用户认证
-	r.POST("/init", routers.InitRootUser)         // 初始化 Root 用户（部署 NFT 合约）
+	// System Initialization
+	r.GET("/init", routers.CheckInitStatus)          // Check if the system is initialized
+	r.POST("/init-build", routers.GetInitContractTx) // Get the transaction to deploy NFT contract
+	r.POST("/init-exec", routers.InitRootUser)       // Execute the transaction to deploy NFT contract
+
 	r.POST("/createVoting", routers.CreateVoting) // 创建投票（部署 Voting 合约）
 
 	// 其他 API（稍后实现）
