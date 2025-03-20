@@ -2,6 +2,8 @@ package routers
 
 import (
 	"backend/config"
+	"backend/database"
+	"backend/database/models"
 	"backend/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
@@ -82,6 +84,26 @@ func InitRootUser(c *gin.Context) {
 		config.G.Blockchain.RootUserAddr = request.WalletAddr
 		config.G.Blockchain.NFTContractAddr = receipt.ContractAddress.Hex()
 		config.SaveConfig()
+
+		// migrate database
+		err = database.Migrate()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to migrate database: " + err.Error()})
+			return
+		}
+
+		// insert root user
+		err = models.InsertUser(database.Db, &models.User{
+			Email:      "root@fake.addr",
+			Nickname:   "root",
+			Role:       models.RoleRoot,
+			WalletAddr: request.WalletAddr,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert root user: " + err.Error()})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{"message": "Sys init OK", "nft_contract": config.G.Blockchain.NFTContractAddr})
 	} else {
 		c.JSON(http.StatusForbidden, gin.H{"error": "System already initialized"})

@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../utils/backend.js";
 const Init = () => {
     const [walletAddress, setWalletAddress] = useState("");
     const [loading, setLoading] = useState(false);
+    const [done, setDone] = useState(false);
     const [message, setMessage] = useState("");
 
     const connectMetaMask = async () => {
@@ -33,8 +34,6 @@ const Init = () => {
         setMessage("");
 
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const account = accounts[0];
             const web3 = new Web3(window.ethereum);
 
             const response = await fetch(`${API_BASE_URL}/init-build`, {
@@ -54,7 +53,7 @@ const Init = () => {
             const txJsonStr = data.tx;
             const tx = JSON.parse(txJsonStr);
             const txObject = {
-                from: account,
+                from: walletAddress,
                 gas: web3.utils.toHex(tx.gas),
                 gasPrice: web3.utils.toHex(tx.gasPrice),
                 value: web3.utils.toHex(tx.value),
@@ -79,8 +78,9 @@ const Init = () => {
             });
 
             const data2 = await response2.json();
-            if (response.ok) {
-                setMessage(`✅ Success! NFT Contract: ${data2.nft_contract}`);
+            if (response2.ok) {
+                setMessage(`✅ Success! You can enjoy the system now.`);
+                setDone(true);
             } else {
                 setMessage(`❌ Error: ${data2.error}`);
             }
@@ -104,8 +104,8 @@ const Init = () => {
                 <button onClick={connectMetaMask} style={styles.button}>
                     {walletAddress ? `Connected: ${walletAddress}` : "Connect MetaMask"}
                 </button>
-                <button onClick={initRootUser} disabled={loading} style={styles.buttonPrimary}>
-                    {loading ? "Initializing..." : "Initialize Root User"}
+                <button onClick={initRootUser} disabled={loading || done} style={styles.buttonPrimary}>
+                    {loading ? "Initializing..." : done ? "Initialization Complete" : "Initialize Root User"}
                 </button>
                 {message && <p style={message.startsWith("✅") ? styles.successMessage : styles.errorMessage}>{message}</p>}
             </div>
