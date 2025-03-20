@@ -26,6 +26,10 @@ func main() {
 	r.POST("/init-build", routers.GetInitContractTx) // Get the transaction to deploy NFT contract
 	r.POST("/init-exec", routers.InitRootUser)       // Execute the transaction to deploy NFT contract
 
+	// Auth
+	r.POST("/auth/gen", routers.GenAuthChallenge)       // Generate a challenge for user to sign
+	r.POST("/auth/verify", routers.VerifyAuthChallenge) // Verify the signature and generate JWT token
+
 	r.POST("/createVoting", routers.CreateVoting) // 创建投票（部署 Voting 合约）
 
 	// 其他 API（稍后实现）

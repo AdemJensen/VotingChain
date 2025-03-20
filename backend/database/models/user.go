@@ -1,10 +1,10 @@
 package models
 
 import (
+	"backend/utils"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"log"
-	"strings"
 )
 
 // User 结构体对应 users 表
@@ -32,9 +32,7 @@ func InsertUser(db *gorm.DB, user *User) error {
 	if user.Role == "" {
 		user.Role = RoleUser
 	}
-	if strings.HasPrefix(user.WalletAddr, "0x") {
-		user.WalletAddr = user.WalletAddr[2:]
-	}
+	user.WalletAddr = utils.NormalizeHex(user.WalletAddr)
 	err := db.Create(user).Error
 	if err != nil {
 		return errors.Wrapf(err, "failed to insert user")

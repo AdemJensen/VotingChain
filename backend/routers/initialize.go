@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 )
 
 func isInitialized() bool {
@@ -33,11 +32,9 @@ func GetInitContractTx(c *gin.Context) {
 		return
 	}
 
-	if !isInitialized() {
-		if strings.HasPrefix(request.WalletAddress, "0x") {
-			request.WalletAddress = request.WalletAddress[2:]
-		}
+	request.WalletAddress = utils.NormalizeHex(request.WalletAddress)
 
+	if !isInitialized() {
 		tx, err := utils.CreateVotingNFTDeploymentTx(c, request.WalletAddress)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create deployment transaction: " + err.Error()})
@@ -67,6 +64,8 @@ func InitRootUser(c *gin.Context) {
 		return
 	}
 
+	request.WalletAddr = utils.NormalizeHex(request.WalletAddr)
+
 	if !isInitialized() {
 		client, err := utils.NewEthClient()
 		if err != nil {
@@ -81,8 +80,8 @@ func InitRootUser(c *gin.Context) {
 			return
 		}
 
-		config.G.Blockchain.RootUserAddr = request.WalletAddr
-		config.G.Blockchain.NFTContractAddr = receipt.ContractAddress.Hex()
+		config.G.Blockchain.RootUserAddr = utils.NormalizeHex(request.WalletAddr)
+		config.G.Blockchain.NFTContractAddr = utils.NormalizeHex(receipt.ContractAddress.Hex())
 		config.SaveConfig()
 
 		// migrate database
@@ -94,7 +93,7 @@ func InitRootUser(c *gin.Context) {
 
 		// insert root user
 		err = models.InsertUser(database.Db, &models.User{
-			Email:      "root@fake.addr",
+			Email:      config.G.Blockchain.RootUserEmail,
 			Nickname:   "root",
 			Role:       models.RoleRoot,
 			WalletAddr: request.WalletAddr,

@@ -1,7 +1,10 @@
 {
   "server": {
     "port": 8080,
-    "corsHost": "http://localhost:5173"
+    "corsHost": "http://localhost:5173",
+    "jwtSecret": "THIS_IS_A_JWT_SECRET",
+    "jwtExpireHr": 24,
+    "jwtKey": "FIXED_KEY"
   },
   "db": {
     "host": "127.0.0.1",
@@ -12,6 +15,7 @@
   },
   "blockchain": {
     "rpcHost": "http://127.0.0.1:7545",
-    "chainID": 1337
+    "chainID": 1337,
+    "rootUserEmail": "root@fake.addr"
   }
 }

@@ -8,8 +8,11 @@ import (
 
 type Config struct {
 	Server struct {
-		Port     int    `json:"port"`
-		CORSHost string `json:"corsHost"`
+		Port        int    `json:"port"`
+		CORSHost    string `json:"corsHost"`
+		JWTSecret   string `json:"jwtSecret"`
+		JWTExpireHr int    `json:"jwtExpireHr"` // in hours
+		JWTKey      string `json:"jwtKey"`      // 你可以通过更换 key 使先前的 JWT Token 失效
 	} `json:"server"`
 	Db struct {
 		Host     string `json:"host"`
@@ -21,6 +24,7 @@ type Config struct {
 	Blockchain struct {
 		RPCHost         string `json:"rpcHost"`
 		ChainID         int64  `json:"chainID"`
+		RootUserEmail   string `json:"rootUserEmail"`
 		RootUserAddr    string `json:"rootUserAddr"`
 		NFTContractAddr string `json:"nftContractAddr"`
 	} `json:"blockchain"`
