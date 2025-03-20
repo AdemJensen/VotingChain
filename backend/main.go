@@ -4,11 +4,22 @@ import (
 	"backend/config"
 	"backend/routers"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func main() {
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{config.G.Server.CORSHost}, // 允许前端的 URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour, // 12小时内不需要重复请求 CORS
+	}))
 
 	// 用户认证
 	r.POST("/init", routers.InitRootUser)         // 初始化 Root 用户（部署 NFT 合约）

@@ -5,6 +5,7 @@ import (
 	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
 
 func InitRootUser(c *gin.Context) {
@@ -19,6 +20,18 @@ func InitRootUser(c *gin.Context) {
 	}
 
 	if config.G.Blockchain.RootUserAddr == "" {
+		if request.WalletAddress == "" {
+			c.JSON(http.StatusOK, gin.H{"message": "System is ready to deploy NFT contract"})
+			return
+		}
+
+		if strings.HasPrefix(request.WalletAddress, "0x") {
+			request.WalletAddress = request.WalletAddress[2:]
+		}
+		if strings.HasPrefix(request.PrivateKey, "0x") {
+			request.PrivateKey = request.PrivateKey[2:]
+		}
+
 		contractAddr, _, err := utils.DeployVotingNFT(c, request.PrivateKey)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to deploy NFT contract: " + err.Error()})
