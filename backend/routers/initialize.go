@@ -16,9 +16,9 @@ func isInitialized() bool {
 
 func CheckInitStatus(c *gin.Context) {
 	if !isInitialized() {
-		c.JSON(http.StatusOK, gin.H{"status": "Not initialized"})
+		c.String(http.StatusOK, "ni")
 	} else {
-		c.JSON(http.StatusForbidden, gin.H{"status": "System already initialized"})
+		c.String(http.StatusOK, "i")
 	}
 }
 

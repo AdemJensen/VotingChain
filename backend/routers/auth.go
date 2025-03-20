@@ -1,12 +1,40 @@
 package routers
 
 import (
+	"backend/database"
+	"backend/database/models"
+	"backend/middlewares"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 var authChallenges = make(map[string]string)
+
+// GetUserState 获取当前访问者的状态
+// 如果用户已经注册，则返回 registered
+// 如果用户未注册，则返回 verified
+// 如果用户未验证（缺乏有效的 JWT Token），则返回 unverified
+func GetUserState(c *gin.Context) {
+	walletAddr, err := middlewares.DecodeWalletAddrFromHeader(c)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"status": "unverified"})
+		return
+	}
+
+	exists, err := models.UserExists(database.Db, walletAddr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user: " + err.Error()})
+		return
+	}
+	if exists {
+		c.JSON(http.StatusOK, gin.H{"status": "registered"})
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{"status": "verified"})
+		return
+	}
+}
 
 func GenAuthChallenge(c *gin.Context) {
 	var request struct {

@@ -1,12 +1,27 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import Web3 from "web3";
 import { API_BASE_URL } from "../utils/backend.js";
+import {checkSystemInit} from "../utils/checkInitStatus.js";
+import {Navigate} from "react-router-dom";
 
 const Init = () => {
+    const [isInitialized, setIsInitialized] = useState(null);
     const [walletAddress, setWalletAddress] = useState("");
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [message, setMessage] = useState("");
+
+    useEffect(() => {
+        const fetchInitStatus = async () => {
+            const initialized = await checkSystemInit();
+            setIsInitialized(initialized);
+        };
+        fetchInitStatus();
+    }, []);
+
+    if (isInitialized === null) {
+        return <div>Checking system status...</div>; // 避免直接跳转，先检查状态
+    }
 
     const connectMetaMask = async () => {
         if (window.ethereum) {
@@ -91,7 +106,7 @@ const Init = () => {
         setLoading(false);
     };
 
-    return (
+    const mainRender = () => (
         <div style={styles.overlay}>
             <div style={styles.box}>
                 <h1 style={styles.title}>System Initialization</h1>
@@ -111,6 +126,13 @@ const Init = () => {
             </div>
         </div>
     );
+
+    if (isInitialized) {
+        // console.log("System already initialized, redirecting to 404");
+        return <Navigate to="/404" replace />;
+    } else {
+        return mainRender();
+    }
 };
 
 // **✅ 仅在 `Init.js` 内部使用 CSS，不影响其他页面**

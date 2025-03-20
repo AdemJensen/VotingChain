@@ -18,6 +18,7 @@ type User struct {
 }
 
 const (
+	RoleVoid  = "" // void role means the wallet address is verified, but not registered. This value should not appear in the database.
 	RoleUser  = "user"
 	RoleAdmin = "admin"
 	RoleRoot  = "root"
@@ -39,4 +40,42 @@ func InsertUser(db *gorm.DB, user *User) error {
 	}
 	log.Printf("Inserted new user: %v", user)
 	return nil
+}
+
+func UserExists(db *gorm.DB, walletAddr string) (bool, error) {
+	var count int64
+	err := db.Model(&User{}).Where("wallet_addr = ?", walletAddr).Count(&count).Error
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to query user")
+	}
+	return count > 0, nil
+}
+
+func GetUserByWalletAddr(db *gorm.DB, walletAddr string) (*User, error) {
+	var user User
+	err := db.Where("wallet_addr = ?", walletAddr).First(&user).Error
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get user")
+	}
+	return &user, nil
+}
+
+func UserHasRole(db *gorm.DB, walletAddr, role string) (bool, error) {
+	user, err := GetUserByWalletAddr(db, walletAddr)
+	if err != nil {
+		return false, err
+	}
+	switch user.Role {
+	case RoleRoot:
+		// root user has all roles
+		return true, nil
+	case RoleAdmin:
+		// admin user has admin and user roles
+		return role == RoleAdmin || role == RoleUser, nil
+	case RoleUser:
+		// normal user has only user role
+		return role == RoleUser, nil
+	default:
+		return false, errors.Errorf("unknown user role '%s'", user.Role)
+	}
 }

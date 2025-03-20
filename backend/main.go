@@ -2,6 +2,8 @@ package main
 
 import (
 	"backend/config"
+	"backend/database/models"
+	"backend/middlewares"
 	"backend/routers"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -27,8 +29,10 @@ func main() {
 	r.POST("/init-exec", routers.InitRootUser)       // Execute the transaction to deploy NFT contract
 
 	// Auth
-	r.POST("/auth/gen", routers.GenAuthChallenge)       // Generate a challenge for user to sign
-	r.POST("/auth/verify", routers.VerifyAuthChallenge) // Verify the signature and generate JWT token
+	r.GET("/auth/state", routers.GetUserState)                                               // Get current user state
+	r.POST("/auth/gen", routers.GenAuthChallenge)                                            // Generate a challenge for user to sign
+	r.POST("/auth/verify", routers.VerifyAuthChallenge)                                      // Verify the signature and generate JWT token
+	r.POST("/auth/register", middlewares.RequireRole(models.RoleVoid), routers.RegisterUser) // Create an account for specified wallet address
 
 	r.POST("/createVoting", routers.CreateVoting) // 创建投票（部署 Voting 合约）
 

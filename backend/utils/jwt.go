@@ -4,16 +4,20 @@ import (
 	"backend/config"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/pkg/errors"
+	"strconv"
 	"time"
 )
 
 func GenerateJWT(walletAddr string) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"wallet": walletAddr,
-		"time":   time.Now().Unix(),
+		"time":   strconv.FormatInt(time.Now().Unix(), 10),
 		"key":    config.G.Server.JWTKey,
 	})
-	tokenString, _ := token.SignedString(config.G.Server.JWTSecret)
+	tokenString, err := token.SignedString([]byte(config.G.Server.JWTSecret))
+	if err != nil {
+		panic(errors.Wrapf(err, "failed to sign token"))
+	}
 	return tokenString
 }
 
@@ -31,7 +35,9 @@ func VerifyJWT(tokenString string) (string, error) {
 	if config.G.Server.JWTKey != claims["key"].(string) {
 		return "", errors.New("token key has changed, please re-login")
 	}
-	if time.Now().Sub(time.Unix(claims["time"].(int64), 0)) > time.Hour*time.Duration(config.G.Server.JWTExpireHr) {
+	ts := claims["time"].(string)
+	t, _ := strconv.ParseInt(ts, 10, 64)
+	if time.Now().Sub(time.Unix(t, 0)) > time.Hour*time.Duration(config.G.Server.JWTExpireHr) {
 		return "", errors.New("token expired")
 	}
 	return claims["wallet"].(string), nil

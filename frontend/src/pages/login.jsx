@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Web3 from "web3";
 import { API_BASE_URL } from "../utils/backend.js";
+import {setTokenFor, setCurrentUser, getCurrentUserStatus} from "../utils/token.js";
 
-const Init = () => {
+const Login = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
@@ -43,11 +44,32 @@ const Init = () => {
                 })
             });
 
+            if (!response2.ok) {
+                setMessage(`❌ Error: ${data.error}`);
+                setLoading(false);
+                return;
+            }
+
             const data2 = await response2.json();
-            if (response2.ok) {
-                setMessage(`✅ Success! Welcome.`);
+            const token = data2.token;
+            console.log("用户 Token:", token);
+            setTokenFor(account, token);
+            setCurrentUser(account);
+
+            // check if the user is registered
+            const stat = await getCurrentUserStatus();
+            if (stat === "verified") {
+                setMessage(`✅ Wallet verified, user not registered. Redirecting in 3 seconds...`);
+                // 3 秒后跳转到注册
+                setTimeout(() => {
+                    window.location.href = "/register";
+                }, 3000);
             } else {
-                setMessage(`❌ Error: ${data2.error}`);
+                setMessage(`✅ Login Success! Redirecting in 3 seconds...`);
+                // 3 秒后跳转到主页面
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 3000);
             }
         } catch (error) {
             setMessage(`❌ Error: ${error.message}`);
@@ -149,4 +171,4 @@ const styles = {
     },
 };
 
-export default Init;
+export default Login;
