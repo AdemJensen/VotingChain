@@ -8,6 +8,18 @@ import (
 	"strings"
 )
 
+func CheckInitStatus(c *gin.Context) {
+	if config.G.Blockchain.RootUserAddr == "" {
+		c.JSON(http.StatusOK, gin.H{"status": "Not initialized"})
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"status": "System already initialized"})
+	}
+}
+
+func GetInitContractTx(c *gin.Context) {
+
+}
+
 func InitRootUser(c *gin.Context) {
 	var request struct {
 		WalletAddress string `json:"wallet_address"`

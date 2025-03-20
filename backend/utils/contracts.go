@@ -1,21 +1,17 @@
 package utils
 
 import (
-	"backend/config"
 	"context"
 	"fmt"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/pkg/errors"
-	"math/big"
-	"os"
-	"strings"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/pkg/errors"
+	"os"
 )
+
+const ContractVotingNFT = "contracts_VotingNFT_sol_VotingNFT"
+const ContractVoting = "contracts_Voting_sol_Voting"
 
 // LoadContract 读取 ABI & Bytecode
 func LoadContract(filename string) (string, string, error) {
@@ -35,61 +31,54 @@ func LoadContract(filename string) (string, string, error) {
 }
 
 func DeployContract(ctx context.Context, privateKey string, contractName string, params ...interface{}) (string, *types.Transaction, error) {
-	client, err := ethclient.Dial(config.G.Blockchain.RPCHost)
+	client, err := NewEthClient()
 	if err != nil {
 		//log.Fatal("Failed to connect to Ethereum client:", err)
-		return "", nil, errors.Wrapf(err, "Failed to connect to Ethereum client: %v", err)
+		return "", nil, errors.Wrapf(err, "New client err")
 	}
 
 	// 解析私钥
 	key, err := crypto.HexToECDSA(privateKey)
 	if err != nil {
 		//log.Fatal("Invalid private key:", err)
-		return "", nil, errors.Wrapf(err, "Invalid private key: %v", err)
+		return "", nil, errors.Wrapf(err, "Invalid private key")
 	}
 
-	auth, err := bind.NewKeyedTransactorWithChainID(key, big.NewInt(config.G.Blockchain.ChainID)) // 替换你的 ChainID
+	tx, err := CreateContractDeploymentTx(ctx, client, crypto.PubkeyToAddress(key.PublicKey).Hex(), contractName, params...)
 	if err != nil {
-		//log.Fatal("Failed to create authorized transactor:", err)
-		return "", nil, errors.Wrapf(err, "Failed to create authorized transactor: %v", err)
+		return "", nil, errors.Wrapf(err, "Failed to create contract deployment transaction")
 	}
 
-	// 读取 ABI 和 Bytecode
-	contractABI, contractBIN, err := LoadContract(contractName)
-
-	parsedABI, err := abi.JSON(strings.NewReader(contractABI))
+	// Get chain ID (Ganache default: 1337 or 5777)
+	chainID, err := client.ChainID(ctx)
 	if err != nil {
-		//log.Fatal("Failed to parse ABI:", err)
-		return "", nil, errors.Wrapf(err, "Failed to parse ABI")
+		return "", nil, errors.Wrapf(err, "Error getting network ID")
 	}
 
-	// **设置 Gas 费用**
-	auth.GasLimit = uint64(5000000) // 5,000,000 Gas，足够的费用
-	auth.GasPrice, err = client.SuggestGasPrice(ctx)
+	// 签名交易
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), key)
 	if err != nil {
-		//log.Fatal("Failed to fetch gas price:", err)
-		return "", nil, errors.Wrapf(err, "Failed to fetch gas price: %v", err)
+		return "", nil, errors.Wrapf(err, "Failed to sign transaction")
 	}
 
-	// 部署合约
-	address, tx, _, err := bind.DeployContract(auth, parsedABI, common.FromHex(contractBIN), client, params...)
+	// 发送交易
+	txHash, contractAddr, err := ExecuteContractDeploymentTx(ctx, client, signedTx)
 	if err != nil {
-		//log.Fatal("Failed to deploy contract:", err)
-		return "", nil, errors.Wrapf(err, "Failed to deploy contract")
+		return "", nil, errors.Wrapf(err, "Failed to execute contract deployment transaction")
 	}
 
-	fmt.Printf("Contract [%s] Deployed at: %s\n", contractName, address.Hex())
-	fmt.Println("Transaction Hash:", tx.Hash().Hex())
+	fmt.Printf("Contract [%s] Deployed at: %s\n", contractName, contractAddr)
+	fmt.Println("Transaction Hash:", txHash)
 
-	return address.Hex()[2:], tx, nil
+	return contractAddr[2:], tx, nil
 }
 
 // DeployVotingNFT 部署 VotingNFT 合约
 func DeployVotingNFT(ctx context.Context, privateKey string) (string, *types.Transaction, error) {
-	return DeployContract(ctx, privateKey, "contracts_VotingNFT_sol_VotingNFT")
+	return DeployContract(ctx, privateKey, ContractVotingNFT)
 }
 
 // DeployVoting 部署 Voting 合约
 func DeployVoting(ctx context.Context, privateKey string, nftAddress string) (string, *types.Transaction, error) {
-	return DeployContract(ctx, privateKey, "contracts_Voting_sol_Voting", common.HexToAddress(nftAddress))
+	return DeployContract(ctx, privateKey, ContractVoting, common.HexToAddress(nftAddress))
 }
