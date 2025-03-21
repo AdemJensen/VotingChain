@@ -17,6 +17,16 @@ func RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
+
+	if request.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email cannot be empty"})
+		return
+	}
+	if request.Nickname == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nickname cannot be empty"})
+		return
+	}
+
 	walletAddr := middlewares.GetWalletAddr(c)
 	if walletAddr == "" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "User not verified"})
@@ -42,4 +52,29 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "User registered", "user": user})
+}
+
+func UpdateUserInfo(c *gin.Context) {
+	var request struct {
+		Nickname string `json:"nickname"`
+	}
+
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+	if request.Nickname == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nickname cannot be empty"})
+		return
+	}
+
+	walletAddr := middlewares.GetWalletAddr(c)
+
+	err := models.UpdateUserByWalletAddr(database.Db, walletAddr, request.Nickname)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated"})
 }

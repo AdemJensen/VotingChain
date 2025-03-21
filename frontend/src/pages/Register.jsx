@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE_URL } from "../utils/backend.js";
-import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserStatus} from "../utils/token.js";
+import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserStatus, logoutCurrentUser} from "../utils/token.js";
 
 const Register = () => {
     const [loading, setLoading] = useState(false);
+    const [done, setDone] = useState(false);
     const [userStatus, setUserStatus] = useState("");
     const [email, setEmail] = useState("");
     const [nickname, setNickname] = useState("");
@@ -19,6 +20,10 @@ const Register = () => {
         };
         fetchUserStatus();
     }, []);
+
+    const jump = () => {
+        window.location.href = "/";
+    }
 
     const register = async () => {
         setLoading(true);
@@ -37,6 +42,7 @@ const Register = () => {
             const data = await response.json();
             if (response.ok) {
                 setMessage(`✅ Successfully registered! Redirecting in 3 seconds...`);
+                setDone(true);
                 setTimeout(() => {
                     window.location.href = "/";
                 }, 3000);
@@ -57,29 +63,38 @@ const Register = () => {
                 <p style={styles.text}>
                     You have successfully connected your wallet. However, this wallet was not associated to an account in our system. Please register your account to continue.
                 </p>
+                <label className="block font-semibold mb-1" style={{textAlign: "left"}}>Wallet Address</label>
                 <input
                     type="text"
-                    placeholder="Enter email"
-                    value={wallet}
-                    disabled={true}
-                    style={{ width: "400px", padding: "10px", marginBottom: "10px" }}
+                    value={"0x"+wallet}
+                    readOnly
+                    disabled
+                    className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
                 />
+                <label className="block font-semibold mb-1" style={{textAlign: "left"}}>Email Address</label>
                 <input
                     type="text"
                     placeholder="Enter email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    style={{ width: "400px", padding: "10px", marginBottom: "10px" }}
+                    className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
                 />
+                <label className="block font-semibold mb-1" style={{textAlign: "left"}}>Nickname</label>
                 <input
                     type="text"
                     placeholder="Enter nickname"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
-                    style={{ width: "400px", padding: "10px", marginBottom: "10px" }}
+                    className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
                 />
-                <button onClick={register} disabled={loading} style={styles.buttonPrimary}>
-                    {loading ? "Processing..." : "Register Account"}
+                <button onClick={done ? jump : register} disabled={loading} style={styles.buttonPrimary}>
+                    {loading ? "Processing..." : done ? "Back to Home" : "Register Account"}
+                </button>
+                <button onClick={() => {
+                    logoutCurrentUser()
+                    window.location.href = "/login";
+                }} disabled={loading} hidden={done} style={styles.buttonDanger}>
+                    Cancel
                 </button>
                 {message && <p style={message.startsWith("✅") ? styles.successMessage : styles.errorMessage}>{message}</p>}
             </div>
@@ -119,7 +134,7 @@ const styles = {
     box: {
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        // alignItems: "center",
         padding: "30px",
         borderRadius: "10px",
         backgroundColor: "#fff",
@@ -134,7 +149,8 @@ const styles = {
     },
     text: {
         fontSize: "16px",
-        marginBottom: "20px",
+        marginBottom: "10px",
+        marginTop: "10px",
         color: "#666",
         textAlign: "left",
         width: "100%",
@@ -152,6 +168,16 @@ const styles = {
     buttonPrimary: {
         padding: "10px 20px",
         backgroundColor: "#28a745",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        width: "100%",
+        marginTop: "10px",
+    },
+    buttonDanger: {
+        padding: "10px 20px",
+        backgroundColor: "#a72828",
         color: "white",
         border: "none",
         borderRadius: "5px",

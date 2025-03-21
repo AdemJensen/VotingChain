@@ -34,6 +34,7 @@ func main() {
 	r.POST("/auth/gen", routers.GenAuthChallenge)                                            // Generate a challenge for user to sign
 	r.POST("/auth/verify", routers.VerifyAuthChallenge)                                      // Verify the signature and generate JWT token
 	r.POST("/auth/register", middlewares.RequireRole(models.RoleVoid), routers.RegisterUser) // Create an account for specified wallet address
+	r.POST("/auth/update", middlewares.RequireRole(models.RoleUser), routers.UpdateUserInfo) // Update user info
 
 	r.POST("/createVoting", routers.CreateVoting) // 创建投票（部署 Voting 合约）
 

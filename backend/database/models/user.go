@@ -85,3 +85,11 @@ func UserHasRole(db *gorm.DB, walletAddr, role string) (bool, error) {
 		return false, errors.Errorf("unknown user role '%s'", user.Role)
 	}
 }
+
+func UpdateUserByWalletAddr(db *gorm.DB, walletAddr, nickname string) error {
+	err := db.Model(&User{}).Where("wallet_addr = ?", walletAddr).Update("nickname", nickname).Error
+	if err != nil {
+		return errors.Wrapf(err, "failed to update user")
+	}
+	return nil
+}

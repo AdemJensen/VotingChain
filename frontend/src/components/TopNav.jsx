@@ -32,6 +32,10 @@ export default function TopNav() {
         window.location = "/login"
     }
 
+    const onSwitchUser = () => {
+        window.location = "/switch"
+    }
+
     const menu = () => (<div className="relative"> <img
         src={gravatarUrl}
         alt="User Avatar"
@@ -43,7 +47,7 @@ export default function TopNav() {
             userInfo={userInfo}
             onClose={() => setMenuOpen(false)}
             onLogout={onLogout}
-            onSwitchUser={onLogin}
+            onSwitchUser={onSwitchUser}
         />
     )}</div>)
 
