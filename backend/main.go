@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"log"
 	"time"
 )
 
@@ -44,18 +45,12 @@ func main() {
 	r.POST("/admin/remove-build", middlewares.RequireRole(models.RoleRoot), routers.GenRemoveAdminTx) // Remove admin gen contract
 	r.POST("/admin/remove-exec", middlewares.RequireRole(models.RoleRoot), routers.RemoveAdmin)       // Remove admin to db
 
+	// Vote
 	r.POST("/createVoting", routers.CreateVoting) // 创建投票（部署 Voting 合约）
 
-	// 其他 API（稍后实现）
-	//r.POST("/authenticate", authenticateUser)
-	//r.POST("/register", registerUser)
-	//r.GET("/votings", listVotings)
-	//r.GET("/user", getUserInfo)
-	//r.GET("/user/votings", getUserVotingHistory)
-
-	fmt.Println("Server started at http://localhost:8080")
+	log.Printf("Server started at http://localhost:%d", config.G.Server.Port)
 	err := r.Run(fmt.Sprintf(":%d", config.G.Server.Port)) // 运行 HTTP 服务器
 	if err != nil {
-		fmt.Println("Err occurred when running server:", err)
+		log.Printf("Err occurred when running server: %v", err)
 	}
 }

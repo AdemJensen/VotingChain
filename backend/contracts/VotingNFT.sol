@@ -11,16 +11,22 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
     struct VotingMetadata {
         address votingContract;
         string role;
-        uint256 participationTime;
+        int option;
     }
 
     mapping(uint256 => VotingMetadata) public tokenMetadata;
+    mapping(address => uint256[]) public userTokens;
+    mapping(address => uint256[]) public voteTokens;
+
     uint256 private nextTokenId;
 
     constructor() ERC721("VotingParticipation", "VOTE-NFT") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
+        nextTokenId = 1;
     }
+
+    // ============================== Management Related Functions ==================================
 
     function addAdmin(address adminAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(ADMIN_ROLE, adminAddress);
@@ -36,13 +42,6 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
 
     function removeMinter(address votingContract) external onlyRole(ADMIN_ROLE) {
         revokeRole(MINTER_ROLE, votingContract);
-    }
-
-    function mint(address user, address votingContract, string memory role) external onlyRole(MINTER_ROLE) {
-        uint256 tokenId = nextTokenId;
-        _safeMint(user, tokenId);
-        tokenMetadata[tokenId] = VotingMetadata(votingContract, role, block.timestamp);
-        nextTokenId++;
     }
 
     function isAuthorizedMinter(address minter) public view returns (bool) {
@@ -62,8 +61,66 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         return admins;
     }
 
+    // ============================== NFT Related Functions ==================================
+
+    function getUserTokens(address user) public view returns (uint256[] memory) {
+        return userTokens[user];
+    }
+
+    function getVoteTokens(address votingContract) public view returns (uint256[] memory) {
+        return voteTokens[votingContract];
+    }
+
+    function getVotingMetadata(uint256 tokenId) public view returns (VotingMetadata memory) {
+        return tokenMetadata[tokenId];
+    }
+
+    function getUserTokenInVoting(address user, address votingContract) public view returns (uint256) {
+        uint256[] storage voteTokensList = voteTokens[votingContract];
+        for (uint256 i = 0; i < voteTokensList.length; i++) {
+            uint256 tokenId = voteTokensList[i];
+            if (ownerOf(tokenId) == user) {
+                return tokenId;
+            }
+        }
+        return 0;
+    }
+
+    function getUserRoleInVoting(address user, address votingContract) public view returns (string memory) {
+        uint256 tokenId = getUserTokenInVoting(user, votingContract);
+        if (tokenId == 0) {
+            return "";
+        }
+        return tokenMetadata[tokenId].role;
+    }
+
+    function getUserOptionInVoting(address user, address votingContract) public view returns (int) {
+        uint256 tokenId = getUserTokenInVoting(user, votingContract);
+        if (tokenId == 0) {
+            return 0;
+        }
+        return tokenMetadata[tokenId].option;
+    }
+
+    function mint(address user, address votingContract, string memory role) external onlyRole(MINTER_ROLE) {
+        require(compareStrings(getUserRoleInVoting(user, votingContract), ""), "User already minted a token for this voting contract");
+        uint256 tokenId = nextTokenId;
+        _safeMint(user, tokenId);
+        tokenMetadata[tokenId] = VotingMetadata(votingContract, role, 0);
+        nextTokenId++;
+    }
+
+    function updateTokenOption(uint256 tokenId, int option) external onlyRole(MINTER_ROLE) {
+        require(ownerOf(tokenId) != address(0), "Token does not exist");
+        tokenMetadata[tokenId].option = option;
+    }
+
     // ** 显式重写 supportsInterface 方法 **
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControlEnumerable) returns (bool) {
         return ERC721Enumerable.supportsInterface(interfaceId) || AccessControlEnumerable.supportsInterface(interfaceId);
+    }
+
+    function compareStrings(string memory _a, string memory _b) internal pure returns(bool) {
+        return keccak256(abi.encodePacked(_a)) == keccak256(abi.encodePacked(_b));
     }
 }

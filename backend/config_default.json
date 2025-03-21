@@ -16,6 +16,7 @@
   "blockchain": {
     "rpcHost": "http://127.0.0.1:7545",
     "chainID": 1337,
+    "voteContractVersion": 1,
     "rootUserEmail": "root@fake.addr"
   }
 }
