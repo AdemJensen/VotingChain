@@ -1,16 +1,18 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+// import "./App.css";
 import Init from "./pages/init.jsx";
 import Login from "./pages/login.jsx";
 import Register from "./pages/register.jsx";
-// import Home from "./pages/Home"; // 主页
-// import Dashboard from "./pages/Dashboard"; // 其他页面
+import Dashboard from "./pages/Home.jsx"; // 主页
+import Profile from "./pages/Profile.jsx"; // 其他页面
 
 const AppRoutes = () => {
+    // return <h1 className="text-red-500 text-4xl font-bold">测试 Tailwind</h1>;
     return (
         <Routes>
-            {/*<Route path="/" element={<Home />} />*/}
-            {/*<Route path="/dashboard" element={<Dashboard />} />*/}
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/init" element={<Init />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
