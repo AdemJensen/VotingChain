@@ -46,8 +46,8 @@ export default function Sidebar({ role, currentPanel }) {
                             className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 
                             ${
                                 currentPanel === item
-                                    ? "bg-gray-300 text-gray-900 shadow-md"
-                                    : "text-gray-700 hover:bg-gray-400 hover:text-black"
+                                    ? "bg-gray-300 text-gray-900 shadow-md font-bold"
+                                    : "text-gray-500 hover:bg-gray-400 hover:text-black"
                             }`}
                         >
                             {item}

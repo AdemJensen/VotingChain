@@ -122,7 +122,7 @@ export default function CreateVote() {
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             <TopNav />
             <div className="flex flex-1">
-                <Sidebar role={userInfo?.role} currentPanel="create-vote" className="w-1/5 bg-gray-100" />
+                <Sidebar role={userInfo?.role} currentPanel="Create Vote" className="w-1/5 bg-gray-100" />
 
                 <main className="flex-1 p-10 overflow-y-auto">
                     <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl border">
