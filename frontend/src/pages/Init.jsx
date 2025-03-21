@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import Web3 from "web3";
 import { API_BASE_URL } from "../utils/backend.js";
 import {checkSystemInit} from "../utils/checkInitStatus.js";
+import {executeBackendBuiltTx} from "../utils/contracts.js";
 import {Navigate} from "react-router-dom";
 
 const Init = () => {
@@ -49,8 +50,6 @@ const Init = () => {
         setMessage("");
 
         try {
-            const web3 = new Web3(window.ethereum);
-
             const response = await fetch(`${API_BASE_URL}/init-build`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -65,24 +64,8 @@ const Init = () => {
                 setLoading(false);
                 return;
             }
-            const txJsonStr = data.tx;
-            const tx = JSON.parse(txJsonStr);
-            const txObject = {
-                from: walletAddress,
-                gas: web3.utils.toHex(tx.gas),
-                gasPrice: web3.utils.toHex(tx.gasPrice),
-                value: web3.utils.toHex(tx.value),
-                data: tx.input,
-                nonce: web3.utils.toHex(tx.nonce),
-            };
-            console.log("Transaction to be sent:", txObject);
 
-            // 3. Send transaction via MetaMask
-            const txHash = await window.ethereum.request({
-                method: 'eth_sendTransaction',
-                params: [txObject],
-            });
-
+            const txHash = await executeBackendBuiltTx(data.tx);
             const response2 = await fetch(`${API_BASE_URL}/init-exec`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

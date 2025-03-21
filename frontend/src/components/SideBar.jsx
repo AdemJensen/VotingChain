@@ -1,10 +1,19 @@
-import { useState } from "react";
-
 const roleMenus = {
     user: ["Vote List", "My Records"],
     admin: ["Create Vote"],
-    root: ["Admin Settings"],
+    root: ["Admin Management"],
 };
+
+const navLocations = {
+    "Vote List": "/votes",
+    "My Records": "/votes/mine",
+    "Create Vote": "/votes/create",
+    "Admin Management": "/admin-manage",
+}
+
+function jumpTo(item) {
+    window.location.href = navLocations[item];
+}
 
 function getMenus(role) {
     const roles = ["user"];
@@ -15,9 +24,10 @@ function getMenus(role) {
     return Array.from(menuSet);
 }
 
-export default function Sidebar({ role }) {
+export default function Sidebar({ role, currentPanel }) {
     const menus = getMenus(role);
-    const [active, setActive] = useState(menus[0]);
+    console.log("CURRENT PANEL:", currentPanel);
+    console.log("Menus:", menus);
 
     return (
         <aside className="w-1/5 bg-gray-200 text-gray-800 h-full p-6 shadow-md">
@@ -32,13 +42,13 @@ export default function Sidebar({ role }) {
                 {menus.map((item) => (
                     <li key={item}>
                         <button
+                            onClick={() => jumpTo(item)}
                             className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 
                             ${
-                                active === item
+                                currentPanel === item
                                     ? "bg-gray-300 text-gray-900 shadow-md"
                                     : "text-gray-700 hover:bg-gray-400 hover:text-black"
                             }`}
-                            onClick={() => setActive(item)}
                         >
                             {item}
                         </button>

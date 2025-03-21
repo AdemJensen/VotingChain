@@ -4,6 +4,7 @@ import (
 	"backend/config"
 	"context"
 	"encoding/hex"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -52,6 +53,64 @@ func CreateContractDeploymentTx(ctx context.Context, client *ethclient.Client, p
 	finalBytecode := append(common.FromHex(contractBIN), constructorArgs...)
 
 	tx := types.NewContractCreation(nonce, big.NewInt(0), gasLimit, gasPrice, finalBytecode)
+	return tx, nil
+}
+
+func CreateContractMethodCallTx(
+	ctx context.Context,
+	client *ethclient.Client,
+	publicAddress string,
+	contractName string,
+	contractAddress string,
+	methodName string,
+	params ...interface{},
+) (*types.Transaction, error) {
+	from := common.HexToAddress(publicAddress)
+	to := common.HexToAddress(contractAddress)
+
+	// 1. 获取 nonce
+	nonce, err := client.PendingNonceAt(ctx, from)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get nonce")
+	}
+
+	// 2. 加载 ABI
+	contractABI, _, err := LoadContract(contractName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load contract %s", contractName)
+	}
+
+	parsedABI, err := abi.JSON(strings.NewReader(contractABI))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse ABI")
+	}
+
+	// 3. 打包函数调用数据
+	data, err := parsedABI.Pack(methodName, params...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to pack method %s", methodName)
+	}
+
+	// 4. 估算 gas
+	msg := ethereum.CallMsg{
+		From: from,
+		To:   &to,
+		Gas:  0,
+		Data: data,
+	}
+	gasLimit, err := client.EstimateGas(ctx, msg)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to estimate gas")
+	}
+
+	// 5. 获取 gas price
+	gasPrice, err := client.SuggestGasPrice(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to suggest gas price")
+	}
+
+	// 6. 构建交易对象（value = 0）
+	tx := types.NewTransaction(nonce, to, big.NewInt(0), gasLimit, gasPrice, data)
 	return tx, nil
 }
 

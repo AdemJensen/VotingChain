@@ -36,6 +36,14 @@ func main() {
 	r.POST("/auth/register", middlewares.RequireRole(models.RoleVoid), routers.RegisterUser) // Create an account for specified wallet address
 	r.POST("/auth/update", middlewares.RequireRole(models.RoleUser), routers.UpdateUserInfo) // Update user info
 
+	// Role
+	r.GET("/admin/list", middlewares.RequireRole(models.RoleRoot), routers.GetAdminList)              // Get the list of admins
+	r.POST("/admin/sync", middlewares.RequireRole(models.RoleRoot), routers.SyncAdminList)            // Sync admin list
+	r.POST("/admin/add-build", middlewares.RequireRole(models.RoleRoot), routers.GenAddAdminTx)       // Add admin gen contract
+	r.POST("/admin/add-exec", middlewares.RequireRole(models.RoleRoot), routers.AddAdmin)             // Add admin to db
+	r.POST("/admin/remove-build", middlewares.RequireRole(models.RoleRoot), routers.GenRemoveAdminTx) // Remove admin gen contract
+	r.POST("/admin/remove-exec", middlewares.RequireRole(models.RoleRoot), routers.RemoveAdmin)       // Remove admin to db
+
 	r.POST("/createVoting", routers.CreateVoting) // 创建投票（部署 Voting 合约）
 
 	// 其他 API（稍后实现）

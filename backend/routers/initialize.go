@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"backend/biz/nft"
 	"backend/config"
 	"backend/database"
 	"backend/database/models"
@@ -35,7 +36,7 @@ func GetInitContractTx(c *gin.Context) {
 	request.WalletAddress = utils.NormalizeHex(request.WalletAddress)
 
 	if !isInitialized() {
-		tx, err := utils.CreateVotingNFTDeploymentTx(c, request.WalletAddress)
+		tx, err := nft.CreateVotingNFTDeploymentTx(c, request.WalletAddress)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create deployment transaction: " + err.Error()})
 			return

@@ -2,9 +2,9 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "./node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "./node_modules/@openzeppelin/contracts/access/AccessControl.sol";
+import "./node_modules/@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
-contract VotingNFT is ERC721Enumerable, AccessControl {
+contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -49,8 +49,21 @@ contract VotingNFT is ERC721Enumerable, AccessControl {
         return hasRole(MINTER_ROLE, minter);
     }
 
+    function isAdministrator(address adminAddress) public view returns (bool) {
+        return hasRole(ADMIN_ROLE, adminAddress);
+    }
+
+    function getAllAdmins() public view returns (address[] memory) {
+        uint256 count = getRoleMemberCount(ADMIN_ROLE);
+        address[] memory admins = new address[](count);
+        for (uint256 i = 0; i < count; i++) {
+            admins[i] = getRoleMember(ADMIN_ROLE, i);
+        }
+        return admins;
+    }
+
     // ** 显式重写 supportsInterface 方法 **
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControl) returns (bool) {
-        return ERC721Enumerable.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControlEnumerable) returns (bool) {
+        return ERC721Enumerable.supportsInterface(interfaceId) || AccessControlEnumerable.supportsInterface(interfaceId);
     }
 }

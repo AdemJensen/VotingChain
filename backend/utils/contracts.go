@@ -3,11 +3,15 @@ package utils
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pkg/errors"
 	"os"
+	"strings"
 )
 
 const ContractVotingNFT = "contracts_VotingNFT_sol_VotingNFT"
@@ -73,17 +77,50 @@ func DeployContract(ctx context.Context, privateKey string, contractName string,
 	return contractAddr[2:], tx, nil
 }
 
-// CreateVotingNFTDeploymentTx 创建 VotingNFT 合约部署交易
-func CreateVotingNFTDeploymentTx(ctx context.Context, ownerAddr string) (*types.Transaction, error) {
-	client, err := NewEthClient()
+func CallViewMethod[T any](
+	ctx context.Context,
+	client *ethclient.Client,
+	contractName string,
+	contractAddr string,
+	funcName string,
+	params []interface{},
+	out *T,
+) error {
+	// 1. 解析 ABI
+	abiStr, _, err := LoadContract(contractName)
 	if err != nil {
-		//log.Fatal("Failed to connect to Ethereum client:", err)
-		return nil, errors.Wrapf(err, "New client err")
+		return errors.Wrapf(err, "Failed to load contract")
 	}
-	return CreateContractDeploymentTx(ctx, client, ownerAddr, ContractVotingNFT)
-}
 
-// DeployVoting 部署 Voting 合约
-func DeployVoting(ctx context.Context, privateKey string, nftAddress string) (string, *types.Transaction, error) {
-	return DeployContract(ctx, privateKey, ContractVoting, common.HexToAddress(nftAddress))
+	parsedAbi, err := abi.JSON(strings.NewReader(abiStr))
+	if err != nil {
+		return fmt.Errorf("failed to parse ABI: %w", err)
+	}
+
+	// 2. 准备 call data
+	input, err := parsedAbi.Pack(funcName, params...)
+	if err != nil {
+		return fmt.Errorf("failed to pack params: %w", err)
+	}
+
+	// 3. 构造调用消息
+	to := common.HexToAddress(contractAddr)
+	msg := ethereum.CallMsg{
+		To:   &to,
+		Data: input,
+	}
+
+	// 4. 调用链上（eth_call）
+	output, err := client.CallContract(ctx, msg, nil)
+	if err != nil {
+		return fmt.Errorf("failed to invoke contract: %w", err)
+	}
+
+	// 5. 解析返回值
+	err = parsedAbi.UnpackIntoInterface(out, funcName, output)
+	if err != nil {
+		return fmt.Errorf("failed to unpack return values: %w", err)
+	}
+
+	return nil
 }

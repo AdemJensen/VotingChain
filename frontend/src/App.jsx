@@ -7,6 +7,7 @@ import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Home.jsx"; // 主页
 import Profile from "./pages/Profile.jsx"; // 其他页面
 import {getCurrentUser, getUserStatus} from "./utils/token.js"
+import AdminManagement from "./pages/AdminManage.jsx";
 
 const AppRoutes = () => {
     const [userStatus, setUserStatus] = useState(null)
@@ -36,6 +37,7 @@ const AppRoutes = () => {
             <Route path="/login" element={<Login title={"Login"} />} />
             <Route path="/switch" element={<Login title={"Switch User"} />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin-manage" element={<AdminManagement />} />
             <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
     );

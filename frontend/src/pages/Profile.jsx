@@ -47,7 +47,7 @@ export default function Profile() {
 
             <div className="flex flex-1">
                 {/* 侧边栏 */}
-                <Sidebar role={userInfo.role} />
+                <Sidebar role={userInfo.role} currentPanel={""} />
 
                 {/* 主内容区域 */}
                 <main className="flex-1 p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
@@ -67,6 +67,14 @@ export default function Profile() {
                         <input
                             type="text"
                             value={"0x" + userInfo.wallet_address}
+                            readOnly
+                            className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
+                        />
+
+                        <label className="block font-semibold mb-1">User Role</label>
+                        <input
+                            type="text"
+                            value={userInfo.role}
                             readOnly
                             className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
                         />

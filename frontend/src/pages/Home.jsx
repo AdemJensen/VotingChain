@@ -26,7 +26,7 @@ export default function Dashboard() {
 
             <div className="flex flex-1">
                 {/* 侧边栏，占 20% 宽度 */}
-                <Sidebar role={userInfo.role} className="w-1/5 bg-gray-200" />
+                <Sidebar role={userInfo.role} currentPanel={""} className="w-1/5 bg-gray-200" />
 
                 {/* 主内容区域，占剩余 80% 宽度 */}
                 <main className="flex-1 p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
