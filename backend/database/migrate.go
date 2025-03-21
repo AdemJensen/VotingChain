@@ -13,5 +13,11 @@ func Migrate() error {
 		return errors.Wrapf(err, "Failed to migrate User model")
 	}
 
+	// 自动迁移（如果 votes 表不存在则创建）
+	err = Db.AutoMigrate(&models.Vote{})
+	if err != nil {
+		return errors.Wrapf(err, "Failed to migrate Vote model")
+	}
+
 	return nil
 }

@@ -5,7 +5,7 @@ import "./node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enu
 import "./node_modules/@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant ROOT_ROLE = keccak256("ROOT_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     struct VotingMetadata {
@@ -22,25 +22,25 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
 
     constructor() ERC721("VotingParticipation", "VOTE-NFT") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(ADMIN_ROLE, msg.sender);
+        _setupRole(ROOT_ROLE, msg.sender);
         nextTokenId = 1;
     }
 
     // ============================== Management Related Functions ==================================
 
-    function addAdmin(address adminAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(ADMIN_ROLE, adminAddress);
+    function addAdmin(address adminAddress) external onlyRole(ROOT_ROLE) {
+        grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
     }
 
-    function removeAdmin(address adminAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        revokeRole(ADMIN_ROLE, adminAddress);
+    function removeAdmin(address adminAddress) external onlyRole(ROOT_ROLE) {
+        revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
     }
 
-    function addMinter(address votingContract) external onlyRole(ADMIN_ROLE) {
+    function addMinter(address votingContract) external onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, votingContract);
     }
 
-    function removeMinter(address votingContract) external onlyRole(ADMIN_ROLE) {
+    function removeMinter(address votingContract) external onlyRole(DEFAULT_ADMIN_ROLE) {
         revokeRole(MINTER_ROLE, votingContract);
     }
 
@@ -49,14 +49,14 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
     }
 
     function isAdministrator(address adminAddress) public view returns (bool) {
-        return hasRole(ADMIN_ROLE, adminAddress);
+        return hasRole(DEFAULT_ADMIN_ROLE, adminAddress);
     }
 
     function getAllAdmins() public view returns (address[] memory) {
-        uint256 count = getRoleMemberCount(ADMIN_ROLE);
+        uint256 count = getRoleMemberCount(DEFAULT_ADMIN_ROLE);
         address[] memory admins = new address[](count);
         for (uint256 i = 0; i < count; i++) {
-            admins[i] = getRoleMember(ADMIN_ROLE, i);
+            admins[i] = getRoleMember(DEFAULT_ADMIN_ROLE, i);
         }
         return admins;
     }

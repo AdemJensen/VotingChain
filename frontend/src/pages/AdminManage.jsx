@@ -63,7 +63,7 @@ export default function AdminManage() {
             alert("✅ Successfully added admin!");
         } catch (err) {
             console.error("Failed to add admin:", err);
-            alert("❌ Failed to add admin: " + err.toString());
+            alert("❌ Failed to add admin: " + err.message);
         }
     };
 
@@ -103,7 +103,7 @@ export default function AdminManage() {
             alert("✅ Successfully removed admin!");
         } catch (err) {
             console.error("Failed to remove admin:", err);
-            alert("❌ Failed to remove admin: " + err.toString());
+            alert("❌ Failed to remove admin: " + err.message);
         }
     };
 

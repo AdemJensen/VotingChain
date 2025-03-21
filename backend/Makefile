@@ -3,6 +3,7 @@ all: clean sol_build build copy_essentials
 sol_build:
 	cd contracts && npm install
 	solcjs --abi --bin --optimize --overwrite -o contracts_build --base-path . contracts/*.sol
+	cd contracts && node scripts/generateArtifact.js
 
 build:
 	go mod tidy

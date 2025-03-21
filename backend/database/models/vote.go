@@ -12,7 +12,6 @@ type Vote struct {
 	ID           uint64 `gorm:"primaryKey" json:"id"`
 	ContractAddr string `gorm:"type:VARCHAR(100);unique;not null" json:"contract_address"`
 	CreateTime   int64  `gorm:"autoCreateTime" json:"create_time"`
-	Version      int    `gorm:"type:INT;not null" json:"version"`
 }
 
 // TableName 指定 User 结构体对应的表名

@@ -65,7 +65,8 @@ const Init = () => {
                 return;
             }
 
-            const txHash = await executeBackendBuiltTx(data.tx);
+            // console.log(data.tx);
+            const txHash = await executeBackendBuiltTx(walletAddress, data.tx);
             const response2 = await fetch(`${API_BASE_URL}/init-exec`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -84,6 +85,7 @@ const Init = () => {
             }
         } catch (error) {
             setMessage(`❌ Error: ${error.message}`);
+            console.log(error);
         }
 
         setLoading(false);

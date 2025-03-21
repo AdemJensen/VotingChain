@@ -39,7 +39,8 @@ contract Voting {
         string[] memory _raw_text_options
     ) {
         votingNFT = VotingNFT(_nftContract);
-        votingNFT.addMinter(address(this));
+        // votingNFT.addMinter(address(this)); // 不能在这里直接调用，否则到 votingNFT 后 sender 会变成 voting contract 而不是调用者
+        // 需要手动在外面调用
 
         vote.version = 1;
         vote.admin = msg.sender;

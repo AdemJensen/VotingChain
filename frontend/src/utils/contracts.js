@@ -27,6 +27,18 @@ export async function executeBackendBuiltTx(walletAddress, txJsonStr) {
     });
 }
 
+export async function deployContract(walletAddress, abi, bytecode) {
+    const web3 = new Web3(window.ethereum);
+    const txObject = {
+        from: normalizeHex0x(walletAddress),
+        gas: web3.utils.toHex(0),
+        gasPrice: web3.utils.toHex(),
+        value: web3.utils.toHex(0),
+        data: bytecode,
+        nonce: web3.utils.toHex(tx.nonce),
+    };
+}
+
 export async function waitForReceipt(web3, txHash, interval = 1000, timeout = 60000) {
     const start = Date.now();
     while (true) {

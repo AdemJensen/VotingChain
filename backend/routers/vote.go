@@ -1,30 +1,62 @@
 package routers
 
 import (
+	"backend/config"
+	"backend/database"
+	"backend/database/models"
+	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func CreateVoting(c *gin.Context) {
-	//var request struct {
-	//	Title          string `json:"title"`
-	//	CreatorAddress string `json:"creator_address"`
-	//	PrivateKey     string `json:"private_key"` // 由前端传入
-	//}
+func GetNftContractAddr(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"addr": "0x" + utils.NormalizeHex(config.G.Blockchain.NFTContractAddr)})
+}
 
-	//if err := c.BindJSON(&request); err != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-	//	return
-	//}
-	//
-	//if !isAdmin(request.CreatorAddress) {
-	//	c.JSON(http.StatusForbidden, gin.H{"error": "Unauthorized"})
-	//	return
-	//}
-	//
-	//votingAddress := deployVoting(request.PrivateKey)
-	//saveVotingToDB(request.Title, votingAddress, request.CreatorAddress)
-	//
-	//c.JSON(http.StatusOK, gin.H{"message": "Voting created", "contract": votingAddress})
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented"})
+func CreateVote(c *gin.Context) {
+	var request struct {
+		VoteAddress string `json:"vote_address"`
+	}
+
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	request.VoteAddress = utils.NormalizeHex(request.VoteAddress)
+	// create in db
+	err := models.InsertVote(database.Db, &models.Vote{
+		ContractAddr: request.VoteAddress,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Vote created"})
+}
+
+func PageQueryVotes(c *gin.Context) {
+	var request struct {
+		Page     int `json:"page"`
+		PageSize int `json:"page_size"`
+	}
+
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	if request.Page <= 0 || request.PageSize <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page or page_size"})
+		return
+	}
+
+	votes, err := models.PageQueryVotes(database.Db, request.Page, request.PageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"votes": votes})
 }
