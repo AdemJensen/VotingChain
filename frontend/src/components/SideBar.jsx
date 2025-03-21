@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 const roleMenus = {
-    user: ["投票列表", "我的记录"],
-    admin: ["创建投票"],
-    root: ["管理员设置"],
+    user: ["Vote List", "My Records"],
+    admin: ["Create Vote"],
+    root: ["Admin Settings"],
 };
 
 function getMenus(role) {
@@ -22,7 +22,7 @@ export default function Sidebar({ role }) {
     return (
         <aside className="w-1/5 bg-gray-200 text-gray-800 h-full p-6 shadow-md">
             {/* 标题部分 */}
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">📌 功能菜单</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-700">📌 Function Panel</h2>
 
             {/* 分隔线 */}
             <div className="border-t border-gray-400 mb-4"></div>

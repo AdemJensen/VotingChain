@@ -151,7 +151,7 @@ const Login = () => {
                 {Object.entries(linkedUsersInfo).map(([walletAddress, user], index) => (
                     <button className="flex items-center" key={index} onClick={() => login(walletAddress)} disabled={loading} style={styles.button}>
                         <img
-                            src={getGravatarAddress(user.email, 20)}
+                            src={getGravatarAddress(user.email, 40)}
                             alt="Avt"
                             className="w-10 h-10 rounded-full cursor-pointer mr-3"
                         />

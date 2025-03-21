@@ -1,4 +1,3 @@
-import md5 from 'md5';
 import {useEffect, useState} from 'react';
 import UserMenu from './UserMenu';
 import {getCurrentUserInfo, getCurrentUser, logoutCurrentUser, getGravatarAddress} from "../utils/token.js";
@@ -20,7 +19,7 @@ export default function TopNav() {
             <h1 className="text-xl font-bold">VotingChain</h1>
         </div>
     } else {
-        gravatarUrl = getGravatarAddress(md5(userInfo.email), 40);
+        gravatarUrl = getGravatarAddress(userInfo.email, 40);
     }
 
     const onLogout = () => {

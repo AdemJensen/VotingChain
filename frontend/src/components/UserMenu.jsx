@@ -14,7 +14,7 @@ export default function UserMenu({ userInfo, onLogout, onSwitchUser, onClose }) 
                     window.location.href = '/profile';
                 }}
             >
-                个人信息
+                Profile
             </button>
             <button
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -23,13 +23,13 @@ export default function UserMenu({ userInfo, onLogout, onSwitchUser, onClose }) 
                     onSwitchUser();
                 }}
             >
-                切换用户
+                Switch User
             </button>
             <button
                 className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                 onClick={onLogout}
             >
-                登出
+                Logout
             </button>
         </div>
     );
