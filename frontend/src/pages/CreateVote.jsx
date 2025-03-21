@@ -5,7 +5,7 @@ import Sidebar from "../components/Sidebar";
 import VotingJson from "../artifacts/contracts_Voting_sol_Voting.json"; // 路径根据你项目结构调整
 import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json"; // 路径根据你项目结构调整
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token";
-import {API_BASE_URL} from "../utils/backend.js";
+import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
 
 export default function CreateVote() {
     const [web3, setWeb3] = useState(null);
@@ -45,23 +45,11 @@ export default function CreateVote() {
     };
 
     const handleCreateVote = async () => {
-        if (!web3) return alert("Web3 未初始化");
+        if (!web3) return alert("Web3 Not Ready");
 
         try {
             setDeploying(true);
-
-            // get NFT contract address
-            const nftAddrResp = await fetch(API_BASE_URL + "/votes/nft-addr", {
-                method: "GET",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" })
-            });
-            const nftAddrRes = await nftAddrResp.json();
-            if (!nftAddrResp.ok) {
-                alert("❌ Failed to fetch NFT Contract Addr: " + nftAddrRes.error);
-                return;
-            }
-
-            const votingNftAddress = nftAddrRes.addr;
+            const votingNftAddress = await getVotingNftAddr();
 
             const from = normalizeHex0x(getCurrentUser());
             const Contract = new web3.eth.Contract(VotingJson.abi);
@@ -125,7 +113,7 @@ export default function CreateVote() {
                 <Sidebar role={userInfo?.role} currentPanel="Create Vote" className="w-1/5 bg-gray-100" />
 
                 <main className="flex-1 p-10 overflow-y-auto">
-                    <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl border">
+                    <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
                         <h2 className="text-4xl font-extrabold text-gray-800 mb-6">🗳️ Create a New Vote</h2>
                         <p className="text-gray-500 mb-8">
                             Fill in the details below to deploy a new voting contract. Once deployed, a unique voting address will be generated.

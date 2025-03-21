@@ -58,5 +58,18 @@ func PageQueryVotes(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"votes": votes})
+	// count page
+	count, err := models.CountVotes(database.Db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"votes":       votes,
+		"count":       count,
+		"page":        request.Page,
+		"page_size":   request.PageSize,
+		"total_pages": (count + int64(request.PageSize) - 1) / int64(request.PageSize),
+	})
 }

@@ -41,3 +41,12 @@ func PageQueryVotes(db *gorm.DB, page, pageSize int) ([]Vote, error) {
 	}
 	return votes, nil
 }
+
+func CountVotes(db *gorm.DB) (int64, error) {
+	var count int64
+	err := db.Model(&Vote{}).Count(&count).Error
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count votes")
+	}
+	return count, nil
+}
