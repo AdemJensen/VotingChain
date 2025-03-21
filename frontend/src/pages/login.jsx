@@ -1,20 +1,71 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import Web3 from "web3";
 import { API_BASE_URL } from "../utils/backend.js";
-import {setTokenFor, setCurrentUser, getCurrentUserStatus} from "../utils/token.js";
+import {
+    setTokenFor,
+    setCurrentUser,
+    getCurrentUserStatus,
+    batchGetUserInfoFromWeb3,
+    normalizeHex0x,
+    getUserInfo, getGravatarAddress
+} from "../utils/token.js";
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
+    const [done, setDone] = useState(false);
+    const [linkedUsersInfo, setLinkedUsersInfo] = useState({});
     const [message, setMessage] = useState("");
 
-    const login = async () => {
+    const linkWallet = async () => {
+        const usersInfo = await batchGetUserInfoFromWeb3()
+        console.log("usersInfo", usersInfo);
+        setLinkedUsersInfo(usersInfo)
+        console.log("OK");
+    }
+
+    useEffect(() => {
+        linkWallet();
+    }, [])
+
+    const jump = async () => {
+        window.location.href = "/"
+    }
+
+    const login = async (account) => {
+        account = normalizeHex0x(account);
+        console.log(account);
         setLoading(true);
         setMessage("");
 
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log(accounts);
-            const account = accounts[0];
+            // check if user's token is still valid
+            const userInfo = await getUserInfo(account);
+            console.log("USER STATE: ", userInfo.state);
+            switch (userInfo.state) {
+                case "registered":
+                    setMessage(`✅ Already logged in! Redirecting in 3 seconds...`);
+                    setDone(true);
+                    setLoading(false);
+                    setLinkedUsersInfo({})
+                    setCurrentUser(account);
+                    // 3 秒后跳转到主页面
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 3000);
+                    return;
+                case "verified":
+                    setMessage(`✅ Wallet already verified, user not registered. Redirecting in 3 seconds...`);
+                    setDone(true);
+                    setLoading(false);
+                    setLinkedUsersInfo({})
+                    setCurrentUser(account);
+                    // 3 秒后跳转到注册
+                    setTimeout(() => {
+                        window.location.href = "/register";
+                    }, 3000);
+                    return;
+            }
+
             const web3 = new Web3(window.ethereum);
 
             const response = await fetch(`${API_BASE_URL}/auth/gen`, {
@@ -55,9 +106,11 @@ const Login = () => {
             console.log("用户 Token:", token);
             setTokenFor(account, token);
             setCurrentUser(account);
+            setLinkedUsersInfo({})
 
             // check if the user is registered
             const stat = await getCurrentUserStatus();
+            setDone(true)
             if (stat === "verified") {
                 setMessage(`✅ Wallet verified, user not registered. Redirecting in 3 seconds...`);
                 // 3 秒后跳转到注册
@@ -85,9 +138,28 @@ const Login = () => {
                 <p style={styles.text}>
                     Please Grant Permission to Access Your MetaMask Wallet.
                 </p>
-                <button onClick={login} disabled={loading} style={styles.buttonPrimary}>
-                    {loading ? "Verifying..." : "Login Via MetaMask"}
+                <button onClick={done ? jump : linkWallet} disabled={loading} style={styles.buttonPrimary}>
+                    {done ? "Back to Home" : "Refresh Wallets"}
                 </button>
+                {/*if linkedUsersInfo is not empty, display an extra text*/}
+                {Object.keys(linkedUsersInfo).length > 0 && (
+                    <p style={styles.text}>
+                        You have linked the following wallets, choose one to continue:
+                    </p>
+                )}
+                {/*for each user, display a button*/}
+                {Object.entries(linkedUsersInfo).map(([walletAddress, user], index) => (
+                    <button className="flex items-center" key={index} onClick={() => login(walletAddress)} disabled={loading} style={styles.button}>
+                        <img
+                            src={getGravatarAddress(user.email, 20)}
+                            alt="Avt"
+                            className="w-10 h-10 rounded-full cursor-pointer mr-3"
+                        />
+                        <div>
+                            0x{walletAddress.slice(0, 12)}... ({user.nickname === "" ? "⚠️ Not Registered" : "✅ As user " + user.nickname}, {user.state === "unverified" ? "🔴 Unverified" : "🟢 Verified"})
+                        </div>
+                   </button>
+                ))}
                 {message && <p style={message.startsWith("✅") ? styles.successMessage : styles.errorMessage}>{message}</p>}
             </div>
         </div>

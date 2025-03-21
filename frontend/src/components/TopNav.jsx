@@ -1,28 +1,62 @@
 import md5 from 'md5';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import UserMenu from './UserMenu';
+import {getCurrentUserInfo, getCurrentUser, logoutCurrentUser, getGravatarAddress} from "../utils/token.js";
 
-export default function TopNav({ user, onLogout, onSwitchUser }) {
+export default function TopNav() {
     const [menuOpen, setMenuOpen] = useState(false);
-    const gravatarUrl = `https://www.gravatar.com/avatar/${md5(user.email)}?s=40&d=identicon`;
+    const [userInfo, setUserInfo] = useState(null);
+
+    useEffect(() => {
+        const getUserInfo = async () => {
+            setUserInfo(await getCurrentUserInfo());
+        }
+        getUserInfo()
+    }, []);
+
+    let gravatarUrl = "";
+    if (!userInfo) {
+        return <div className="flex justify-between items-center bg-white shadow px-6 py-4">
+            <h1 className="text-xl font-bold">VotingChain</h1>
+        </div>
+    } else {
+        gravatarUrl = getGravatarAddress(md5(userInfo.email), 40);
+    }
+
+    const onLogout = () => {
+        logoutCurrentUser()
+        setUserInfo({});
+        window.location = "/login"
+    }
+
+    const onLogin = () => {
+        window.location = "/login"
+    }
+
+    const menu = () => (<div className="relative"> <img
+        src={gravatarUrl}
+        alt="User Avatar"
+        className="w-10 h-10 rounded-full cursor-pointer"
+        onClick={() => setMenuOpen(!menuOpen)}
+    />
+    {menuOpen && (
+        <UserMenu
+            userInfo={userInfo}
+            onClose={() => setMenuOpen(false)}
+            onLogout={onLogout}
+            onSwitchUser={onLogin}
+        />
+    )}</div>)
 
     return (
         <div className="flex justify-between items-center bg-white shadow px-6 py-4">
             <h1 className="text-xl font-bold">VotingChain</h1>
             <div className="relative">
-                <img
-                    src={gravatarUrl}
-                    alt="User Avatar"
-                    className="w-10 h-10 rounded-full cursor-pointer"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                />
-                {menuOpen && (
-                    <UserMenu
-                        onClose={() => setMenuOpen(false)}
-                        onLogout={onLogout}
-                        onSwitchUser={onSwitchUser}
-                    />
-                )}
+                {getCurrentUser() === "" ? (
+                    <button className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200" onClick={onLogin}>
+                        Login
+                    </button>
+                ) : menu()}
             </div>
         </div>
     );

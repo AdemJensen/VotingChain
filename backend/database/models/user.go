@@ -24,6 +24,12 @@ const (
 	RoleRoot  = "root"
 )
 
+const (
+	StateUnverified = "unverified" // 表示用户未登录或者 JWT Token 无效
+	StateVerified   = "verified"   // 表示用户已拥有有效的 JWT Token，但未注册
+	StateRegistered = "registered" // 表示用户已注册且拥有有效的 JWT Token
+)
+
 // TableName 指定 User 结构体对应的表名
 func (User) TableName() string {
 	return "users"

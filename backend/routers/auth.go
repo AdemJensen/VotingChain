@@ -18,7 +18,7 @@ var authChallenges = make(map[string]string)
 func GetUserState(c *gin.Context) {
 	walletAddr, err := middlewares.DecodeWalletAddrFromHeader(c)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"status": "unverified"})
+		c.JSON(http.StatusOK, gin.H{"status": models.StateUnverified})
 		return
 	}
 
@@ -28,12 +28,77 @@ func GetUserState(c *gin.Context) {
 		return
 	}
 	if exists {
-		c.JSON(http.StatusOK, gin.H{"status": "registered"})
+		c.JSON(http.StatusOK, gin.H{"status": models.StateRegistered})
 		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{"status": "verified"})
+		c.JSON(http.StatusOK, gin.H{"status": models.StateVerified})
 		return
 	}
+}
+
+type userInfo struct {
+	WalletAddr string `json:"wallet_address"`
+	Email      string `json:"email"`
+	Nickname   string `json:"nickname"`
+	Role       string `json:"role"`
+	State      string `json:"state"`
+	Err        string `json:"error"`
+}
+
+func BatchGetUserInfo(c *gin.Context) {
+	var request struct {
+		WalletAddresses []string `json:"wallet_addresses"`
+		JWTTokens       []string `json:"jwt_tokens"` // 可选参数，如果传入，则必须与 wallet_addresses 一一对应
+	}
+
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	if len(request.JWTTokens) > 0 {
+		if len(request.WalletAddresses) != len(request.JWTTokens) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "wallet_addresses and jwt_tokens must have the same length"})
+			return
+		}
+	}
+
+	var res = make(map[string]*userInfo)
+	for i := range request.WalletAddresses {
+		walletAddr := utils.NormalizeHex(request.WalletAddresses[i])
+		user, err := models.GetUserByWalletAddr(database.Db, walletAddr)
+		if err != nil {
+			res[walletAddr] = &userInfo{
+				Role:       models.RoleVoid,
+				WalletAddr: walletAddr,
+				Err:        err.Error(),
+			}
+		} else {
+			res[walletAddr] = &userInfo{
+				Email:      user.Email,
+				Nickname:   user.Nickname,
+				Role:       user.Role,
+				WalletAddr: user.WalletAddr,
+				Err:        "",
+			}
+		}
+
+		if len(request.JWTTokens) > 0 {
+			_, err = utils.VerifyJWT(request.JWTTokens[i])
+			if err != nil {
+				res[walletAddr].Err = err.Error()
+				res[walletAddr].State = models.StateUnverified
+			} else {
+				if res[walletAddr].Role == models.RoleVoid {
+					res[walletAddr].State = models.StateVerified
+				} else {
+					res[walletAddr].State = models.StateRegistered
+				}
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"info": res})
 }
 
 func GenAuthChallenge(c *gin.Context) {

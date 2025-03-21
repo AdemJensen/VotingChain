@@ -33,7 +33,7 @@ export default function Sidebar({ role }) {
                     <li key={item}>
                         <button
                             className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 
-                ${
+                            ${
                                 active === item
                                     ? "bg-gray-300 text-gray-900 shadow-md"
                                     : "text-gray-700 hover:bg-gray-400 hover:text-black"
