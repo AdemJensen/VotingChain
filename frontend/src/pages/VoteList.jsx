@@ -16,7 +16,7 @@ const STATE_MAP = {
     3n: "Ended"
 };
 
-export default function VoteList() {
+export default function VoteList( {mine} ) {
     const [votingNftAddr, setVotingNftAddr] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [web3, setWeb3] = useState(null);
@@ -45,20 +45,11 @@ export default function VoteList() {
         t()
     }, []);
 
-    useEffect(() => {
-        if (web3 && votingNftAddr) {
-            fetchVoteContracts();
-        }
-    }, [page, web3, votingNftAddr]);
-
-    if (!web3 || !votingNftAddr || !userInfo) {
-        return <div>Loading...</div>;
-    }
-
     const fetchVoteContracts = async () => {
         setLoading(true);
         try {
-            const pageQueryResp = await fetch(API_BASE_URL + "/votes/page", {
+            console.log("Mine:", mine)
+            const pageQueryResp = await fetch(API_BASE_URL + (mine ? "/votes/mine" : "/votes/page"), {
                 method: "POST",
                 headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ page: page, page_size: PAGE_SIZE })
@@ -143,6 +134,16 @@ export default function VoteList() {
         }
     };
 
+    useEffect(() => {
+        if (web3 && votingNftAddr) {
+            fetchVoteContracts();
+        }
+    }, [page, web3, votingNftAddr]);
+
+    if (!web3 || !votingNftAddr || !userInfo) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             <TopNav />
@@ -159,7 +160,9 @@ export default function VoteList() {
                     ) : (
                         <div className="space-y-4">
                             {votes.map((vote) => (
-                                <div key={vote.id} className="bg-gray-30 rounded-xl p-4 shadow-md hover:shadow-lg transition">
+                                <div key={vote.id} className="bg-gray-30 rounded-xl p-4 shadow-md hover:shadow-lg transition" onClick={() => {
+                                    window.location.href = `/vote/${vote.contract}`;
+                                }}>
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="text-xl font-bold mb-1">{vote.title}</h3>

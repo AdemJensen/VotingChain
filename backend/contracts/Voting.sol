@@ -89,6 +89,29 @@ contract Voting {
         }
     }
 
+    function nextState() public {
+        require(isOwner(msg.sender), "Only owner can change state");
+        vote.state = getNextState();
+    }
+
+    function getAllStates() public view returns (State[] memory) {
+        uint stateCount = 3; // Init, Voting, Ended
+        if (hasRegistrationState()) {
+            stateCount++; // Add Registration state if needed
+        }
+
+        State[] memory states = new State[](stateCount);
+        uint index = 0;
+        states[index++] = State.Init;
+        if (hasRegistrationState()) {
+            states[index++] = State.Registration;
+        }
+        states[index++] = State.Voting;
+        states[index] = State.Ended;
+
+        return states;
+    }
+
     function registerVoter() public {
         require(votingNFT.isAuthorizedMinter(address(this)), "Voting contract not authorized");
         require(vote.state == State.Registration || (vote.state == State.Voting && vote.needRegistration == false), "Voting contract not in registration state");

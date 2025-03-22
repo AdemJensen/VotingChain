@@ -50,3 +50,13 @@ func CountVotes(db *gorm.DB) (int64, error) {
 	}
 	return count, nil
 }
+
+func GetVoteByContractAddr(db *gorm.DB, contractAddr string) (*Vote, error) {
+	contractAddr = utils.NormalizeHex(contractAddr)
+	var vote Vote
+	err := db.Where("contract_addr = ?", utils.NormalizeHex(contractAddr)).First(&vote).Error
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get vote by contract address")
+	}
+	return &vote, nil
+}

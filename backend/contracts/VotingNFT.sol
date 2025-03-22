@@ -79,6 +79,9 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         uint256[] storage voteTokensList = voteTokens[votingContract];
         for (uint256 i = 0; i < voteTokensList.length; i++) {
             uint256 tokenId = voteTokensList[i];
+            if (tokenId == 0) {
+                continue;
+            }
             if (ownerOf(tokenId) == user) {
                 return tokenId;
             }
@@ -107,12 +110,43 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         uint256 tokenId = nextTokenId;
         _safeMint(user, tokenId);
         tokenMetadata[tokenId] = VotingMetadata(votingContract, role, 0);
+        userTokens[user].push(tokenId);
+        voteTokens[votingContract].push(tokenId);
         nextTokenId++;
     }
 
     function updateTokenOption(uint256 tokenId, int option) external onlyRole(MINTER_ROLE) {
+        if (tokenId == 0) {
+            revert("Token does not exist (Zero value)");
+        }
         require(ownerOf(tokenId) != address(0), "Token does not exist");
         tokenMetadata[tokenId].option = option;
+    }
+
+    function getAllTokenIdsByVotingContract(address votingContract) public view returns (uint256[] memory) {
+        return voteTokens[votingContract];
+    }
+
+    function getAllTokenIdsByUser(address user) public view returns (uint256[] memory) {
+        return userTokens[user];
+    }
+
+    function getAllTokensByVotingContract(address votingContract) public view returns (VotingMetadata[] memory) {
+        uint256[] memory tokenIds = getAllTokenIdsByVotingContract(votingContract);
+        VotingMetadata[] memory tokens = new VotingMetadata[](tokenIds.length);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokens[i] = tokenMetadata[tokenIds[i]];
+        }
+        return tokens;
+    }
+
+    function getAllTokensByUser(address user) public view returns (VotingMetadata[] memory) {
+        uint256[] memory tokenIds = getAllTokenIdsByUser(user);
+        VotingMetadata[] memory tokens = new VotingMetadata[](tokenIds.length);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokens[i] = tokenMetadata[tokenIds[i]];
+        }
+        return tokens;
     }
 
     // ** 显式重写 supportsInterface 方法 **

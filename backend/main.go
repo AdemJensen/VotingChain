@@ -46,9 +46,10 @@ func main() {
 	r.POST("/admin/remove-exec", middlewares.RequireRole(models.RoleRoot), routers.RemoveAdmin)       // Remove admin to db
 
 	// Vote
-	r.GET("/votes/nft-addr", middlewares.RequireRole(models.RoleAdmin), routers.GetNftContractAddr) // Get NFT contract address
-	r.POST("/votes/create", middlewares.RequireRole(models.RoleAdmin), routers.CreateVote)          // Create a vote in DB
-	r.POST("/votes/page", routers.PageQueryVotes)                                                   // Page query votes
+	r.GET("/votes/nft-addr", routers.GetNftContractAddr)                                      // Get NFT contract address
+	r.POST("/votes/create", middlewares.RequireRole(models.RoleAdmin), routers.CreateVote)    // Create a vote in DB
+	r.POST("/votes/page", routers.PageQueryVotes)                                             // Page query votes
+	r.POST("/votes/mine", middlewares.RequireRole(models.RoleUser), routers.PageQueryMyVotes) // Page query votes
 
 	log.Printf("Server started at http://localhost:%d", config.G.Server.Port)
 	err := r.Run(fmt.Sprintf(":%d", config.G.Server.Port)) // 运行 HTTP 服务器
