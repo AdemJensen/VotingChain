@@ -47,7 +47,7 @@ const Login = ({ title }) => {
                     className="w-10 h-10 rounded-full mr-3"
                 />
                 <label className={"ml-4"}>
-                    {loggedInUser.nickname}
+                    {loggedInUser.nickname === "" ? '-' : loggedInUser.nickname}
                     <div className="text-xs text-gray-500">{normalizeHex0x(loggedInUser.wallet_address)}</div>
                 </label>
                 <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ const Login = ({ title }) => {
                             className="w-10 h-10 rounded-full mr-3"
                         />
                         <label className={"ml-4"}>
-                            {user.nickname}
+                            {user.nickname === "" ? '-' : user.nickname}
                             <div className="text-xs text-gray-500">{normalizeHex0x(walletAddress)}</div>
                         </label>
                         <div className="flex items-center gap-2">

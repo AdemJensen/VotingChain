@@ -89,7 +89,7 @@ const Register = () => {
                     className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
                 />
                 <button onClick={done ? jump : register} disabled={loading} style={styles.buttonPrimary}>
-                    {loading ? "Processing..." : done ? "Back to Home" : "Register Account"}
+                    {loading ? "Processing..." : done ? "Continue" : "Register Account"}
                 </button>
                 <button onClick={() => {
                     logoutCurrentUser()
