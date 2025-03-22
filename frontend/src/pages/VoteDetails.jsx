@@ -7,6 +7,7 @@ import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
 import {getCurrentUser, getCurrentUserInfo, getGravatarAddress, getUserInfo, normalizeHex0x} from "../utils/token";
 import {getVotingNftAddr} from "../utils/backend";
+import { useToast } from "../context/ToastContext";
 
 const STATE_MAP = ["Init", "Registration", "Voting", "Ended"];
 const OPTION_TYPE_MAP = {
@@ -15,6 +16,7 @@ const OPTION_TYPE_MAP = {
 };
 
 export default function VoteDetails() {
+    const toast = useToast();
     const { contract } = useParams();
     const [web3, setWeb3] = useState(null);
     const [user, setUser] = useState(null);
@@ -35,7 +37,7 @@ export default function VoteDetails() {
         if (window.ethereum) {
             setWeb3(new Web3(window.ethereum));
         } else {
-            alert("Please install MetaMask");
+            toast("Please install MetaMask", "error");
         }
         getCurrentUserInfo().then(setUser);
     }, []);
@@ -95,6 +97,7 @@ export default function VoteDetails() {
             setPrepDone(true);
         } catch (err) {
             console.error("Failed to load vote details:", err);
+            toast("Failed to load vote details: " + err.message, "error");
         }
     };
 
@@ -102,10 +105,10 @@ export default function VoteDetails() {
         try {
             const voting = new web3.eth.Contract(VotingJson.abi, contract);
             await voting.methods.registerCandidate().send({ from: normalizeHex0x(getCurrentUser()) });
-            alert("Candidate registration successful!");
+            toast("Candidate registration successful!");
             loadVoteDetails();
         } catch (err) {
-            alert("Registration failed: " + err.message);
+            toast("Registration failed: " + err.message, "error");
         }
     };
 
@@ -113,10 +116,10 @@ export default function VoteDetails() {
         try {
             const voting = new web3.eth.Contract(VotingJson.abi, contract);
             await voting.methods.registerVoter().send({ from: normalizeHex0x(getCurrentUser()) });
-            alert("Candidate registration successful!");
+            toast("Candidate registration successful!");
             loadVoteDetails();
         } catch (err) {
-            alert("Registration failed: " + err.message);
+            toast("Registration failed: " + err.message, "error");
         }
     };
 
@@ -124,10 +127,10 @@ export default function VoteDetails() {
         try {
             const voting = new web3.eth.Contract(VotingJson.abi, contract);
             await voting.methods.doVote(optionId).send({ from: normalizeHex0x(getCurrentUser()) });
-            alert("Vote successful!");
+            toast("Vote successful!");
             loadVoteDetails();
         } catch (err) {
-            alert("Voting failed: " + err.message);
+            toast("Voting failed: " + err.message, "error");
         }
     };
 
@@ -135,10 +138,10 @@ export default function VoteDetails() {
         try {
             const voting = new web3.eth.Contract(VotingJson.abi, contract);
             await voting.methods.nextState().send({ from: normalizeHex0x(getCurrentUser()) });
-            alert("State updated!");
+            toast("State updated!");
             loadVoteDetails();
         } catch (err) {
-            alert("State change failed: " + err.message);
+            toast("State change failed: " + err.message, "error");
         }
     };
 

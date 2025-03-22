@@ -7,6 +7,7 @@ import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json";
 import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token.js";
 import {useParams} from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 
 const PAGE_SIZE = 5;
 
@@ -30,6 +31,7 @@ const API_MAP = {
 }
 
 export default function VoteList( {mode} ) {
+    const toast = useToast();
     const { pg } = useParams();
     const [votingNftAddr, setVotingNftAddr] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
@@ -48,7 +50,7 @@ export default function VoteList( {mode} ) {
         if (window.ethereum) {
             setWeb3(new Web3(window.ethereum));
         } else {
-            alert("Please install MetaMask");
+            toast("Please install MetaMask", "error");
         }
     }, []);
 
@@ -74,7 +76,7 @@ export default function VoteList( {mode} ) {
             });
             const data = await pageQueryResp.json();
             if (!pageQueryResp.ok) {
-                alert(`❌ Failed to fetch votes on page ${page}: ` + data.error);
+                toast(`Failed to fetch votes on page ${page}: ` + data.error, "error");
                 return;
             }
 

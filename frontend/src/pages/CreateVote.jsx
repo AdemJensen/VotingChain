@@ -6,8 +6,10 @@ import VotingJson from "../artifacts/contracts_Voting_sol_Voting.json"; // 路�
 import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json"; // 路径根据你项目结构调整
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token";
 import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
+import { useToast } from "../context/ToastContext";
 
 export default function CreateVote() {
+    const toast = useToast();
     const [web3, setWeb3] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [title, setTitle] = useState("");
@@ -27,9 +29,9 @@ export default function CreateVote() {
         if (window.ethereum) {
             setWeb3(new Web3(window.ethereum));
         } else {
-            alert("请安装 MetaMask 扩展");
+            toast("Please install MetaMask to deploy the contract.", "error");
         }
-    }, []);
+    }, [toast]);
 
     const updateRawOption = (index, value) => {
         const updated = [...rawOptions];
@@ -45,7 +47,7 @@ export default function CreateVote() {
     };
 
     const handleCreateVote = async () => {
-        if (!web3) return alert("Web3 Not Ready");
+        if (!web3) return toast("Web3 Not Ready", "error");
 
         try {
             setDeploying(true);
@@ -90,15 +92,15 @@ export default function CreateVote() {
             });
             const res = await response.json();
             if (!response.ok) {
-                alert("❌ Failed to build add admin to db: " + res.error);
+                toast("Failed to build add admin to db: " + res.error, "error");
                 return;
             }
 
             setContractAddress(votingAddress);
-            alert("✅ Voting contract deployed and granted successfully!");
+            toast("Voting contract deployed and granted successfully!", "success");
         } catch (err) {
             console.error(err);
-            alert("❌ Contract deployment failed：" + err.message);
+            toast("Contract deployment failed：" + err.message, "error");
         } finally {
             setDeploying(false);
         }

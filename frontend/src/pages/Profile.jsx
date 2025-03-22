@@ -3,8 +3,10 @@ import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
 import {getCurrentUserInfo, getGravatarAddress, attachTokenForCurrentUser} from "../utils/token.js";
 import {API_BASE_URL} from "../utils/backend.js";
+import { useToast } from "../context/ToastContext";
 
 export default function Profile() {
+    const toast = useToast();
     const [nickname, setNickname] = useState('');
     const [userInfo, setUserInfo] = useState(null);
 
@@ -32,11 +34,11 @@ export default function Profile() {
 
         const data = await response.json();
         if (!response.ok) {
-            alert(`❌ Update user info error: ${data.error}`);
+            toast(`Update user info error: ${data.error}`, "error");
             return;
         }
 
-        alert(`✅ User info updated.`);
+        toast(`User info updated.`, "success");
         window.location.reload();
     };
 

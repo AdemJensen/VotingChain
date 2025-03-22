@@ -4,8 +4,10 @@ import Sidebar from "../components/SideBar.jsx";
 import {attachTokenForCurrentUser, getCurrentUser} from "../utils/token.js";
 import {executeBackendBuiltTx} from "../utils/contracts.js";
 import {API_BASE_URL} from "../utils/backend.js";
+import { useToast } from "../context/ToastContext";
 
 export default function AdminManage() {
+    const toast = useToast();
     const [admins, setAdmins] = useState([]);
     const [showSyncModal, setShowSyncModal] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -37,7 +39,7 @@ export default function AdminManage() {
             });
             const res = await response.json();
             if (!response.ok) {
-                alert("❌ Failed to build add admin contract: " + res.error);
+                toast("Failed to build add admin contract: " + res.error, "error");
                 return;
             }
 
@@ -54,16 +56,16 @@ export default function AdminManage() {
             });
             const res2 = await response2.json();
             if (!response2.ok) {
-                alert("❌ Failed to build add admin to db: " + res2.error);
+                toast("Failed to build add admin to db: " + res2.error, "error");
                 return;
             }
             setNewAddress("");
             setShowAddModal(false);
             await fetchAdmins()
-            alert("✅ Successfully added admin!");
+            toast("Successfully added admin!", "success");
         } catch (err) {
             console.error("Failed to add admin:", err);
-            alert("❌ Failed to add admin: " + err.message);
+            toast("Failed to add admin: " + err.message, "error");
         }
     };
 
@@ -78,7 +80,7 @@ export default function AdminManage() {
             });
             const res = await response.json();
             if (!response.ok) {
-                alert("❌ Failed to build remove admin contract: " + res.error);
+                toast("Failed to build remove admin contract: " + res.error, "error");
                 return;
             }
 
@@ -95,15 +97,15 @@ export default function AdminManage() {
             });
             const res2 = await response2.json();
             if (!response2.ok) {
-                alert("❌ Failed to build remove admin to db: " + res2.error);
+                toast("Failed to build remove admin to db: " + res2.error, "error");
                 return;
             }
             setDeleteTarget(null);
             await fetchAdmins()
-            alert("✅ Successfully removed admin!");
+            toast("Successfully removed admin!", "success");
         } catch (err) {
             console.error("Failed to remove admin:", err);
-            alert("❌ Failed to remove admin: " + err.message);
+            toast("Failed to remove admin: " + err.message, "error");
         }
     };
 
@@ -114,14 +116,14 @@ export default function AdminManage() {
         });
         if (!response.ok) {
             console.error("Error checking user status:", response.status);
-            alert("❌ Failed to sync with blockchain");
+            toast("Failed to sync with blockchain", "error");
             return {};
         }
         const res = await response.json();
         console.log(res);
         await fetchAdmins();
         setShowSyncModal(false);
-        alert("✅ Successfully synced with blockchain!");
+        toast("Successfully synced with blockchain!", "success");
     }
 
     useEffect(() => {
