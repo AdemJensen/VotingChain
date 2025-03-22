@@ -48,7 +48,7 @@ export default function VoteList( {mine} ) {
     const fetchVoteContracts = async () => {
         setLoading(true);
         try {
-            console.log("Mine:", mine)
+            // console.log("Mine:", mine)
             const pageQueryResp = await fetch(API_BASE_URL + (mine ? "/votes/mine" : "/votes/page"), {
                 method: "POST",
                 headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
@@ -148,7 +148,7 @@ export default function VoteList( {mine} ) {
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             <TopNav />
             <div className="flex flex-1">
-                <Sidebar role={userInfo?.role} currentPanel={"Voting List"} className="w-1/5 bg-gray-100" />
+                <Sidebar role={userInfo?.role} currentPanel={mine ? "My Records" : "Voting List"} className="w-1/5 bg-gray-100" />
 
                 <main className="flex-1 p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
                     <h2 className="text-3xl font-extrabold mb-6">📋 Voting List</h2>

@@ -165,11 +165,13 @@ export default function VoteDetails() {
                             <h3 className="text-lg font-semibold mb-2">Progress:</h3>
                             <div className="flex items-center gap-4">
                                 {STATE_MAP.map((label, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                        <div className={`w-6 h-6 rounded-full ${currentState === index ? "bg-blue-600" : "bg-gray-300"}`}></div>
-                                        <span className="text-sm text-gray-600">{label}</span>
-                                        {index < STATE_MAP.length - 1 && <div className="w-10 h-1 bg-gray-300" />}
-                                    </div>
+                                    (hasRegistrationState || index !== 1) && (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <div className={`w-6 h-6 rounded-full ${currentState === index ? "bg-blue-600" : "bg-gray-300"}`}></div>
+                                            <span className="text-sm text-gray-600">{label}</span>
+                                            {index < STATE_MAP.length - 1 && <div className="w-10 h-1 bg-gray-300" />}
+                                        </div>
+                                    )
                                 ))}
                             </div>
                         </div>
