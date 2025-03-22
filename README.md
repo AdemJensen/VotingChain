@@ -45,6 +45,7 @@ Prepare your MySQL database, and create a new Schema to get ready for auto-migra
 git clone https://github.com/AdemJensen/VotingChain
 cd backend
 make all
+make reset_config
 
 cd ../frontend
 npm install

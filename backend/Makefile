@@ -17,7 +17,7 @@ clean:
 	rm -rf contracts_build
 
 reset_config:
-	rm config.json
-	rm build/config.json
+	rm -f config.json
+	rm -f build/config.json
 	cp config_default.json config.json
 	cp config_default.json build/config.json

@@ -2,6 +2,9 @@ import {API_BASE_URL} from "./backend.js";
 import md5 from "md5";
 
 export function normalizeHex(hex) {
+    if (!hex) {
+        return "";
+    }
     // to lower
     hex = hex.toLowerCase();
     // remove 0x prefix

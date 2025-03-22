@@ -14,5 +14,4 @@ export function restoreHref() {
     } else {
         window.location.href = "/";
     }
-    // window.location.reload();
 }

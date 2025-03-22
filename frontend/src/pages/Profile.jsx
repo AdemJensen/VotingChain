@@ -9,6 +9,8 @@ export default function Profile() {
     const toast = useToast();
     const [nickname, setNickname] = useState('');
     const [userInfo, setUserInfo] = useState(null);
+    const [reloadFlag, setReloadFlag] = useState(0);
+    const reloadTopNav = () => setReloadFlag(prev => prev + 1);
 
     useEffect(() => {
         const getUserInfo = async () => {
@@ -39,12 +41,12 @@ export default function Profile() {
         }
 
         toast(`User info updated.`, "success");
-        window.location.reload();
+        reloadTopNav();
     };
 
     return (
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800 overflow-hidden">
-            <TopNav />
+            <TopNav key={reloadFlag} />
             <div className="flex flex-1 overflow-hidden">
                 <Sidebar
                     role={userInfo.role} currentPanel={""}
