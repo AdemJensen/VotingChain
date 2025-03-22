@@ -1,200 +1,142 @@
-import React, {useEffect, useState} from "react";
-import Web3 from "web3";
+import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../utils/backend.js";
-import {checkSystemInit} from "../utils/checkInitStatus.js";
+import {
+    batchGetUserInfoFromWeb3,
+    normalizeHex0x,
+} from "../utils/token.js";
+import { restoreHref } from "../utils/nav.js";
 import {executeBackendBuiltTx} from "../utils/contracts.js";
-import {Navigate} from "react-router-dom";
+import {useToast} from "../context/ToastContext.jsx";
 
 const Init = () => {
-    const [isInitialized, setIsInitialized] = useState(null);
-    const [walletAddress, setWalletAddress] = useState("");
+    const toast = useToast();
     const [loading, setLoading] = useState(false);
+    const [loggedInUser, setLoggedInUser] = useState("");
+    const [linkedUsersInfo, setLinkedUsersInfo] = useState([]);
     const [done, setDone] = useState(false);
-    const [message, setMessage] = useState("");
 
-    useEffect(() => {
-        const fetchInitStatus = async () => {
-            const initialized = await checkSystemInit();
-            setIsInitialized(initialized);
-        };
-        fetchInitStatus();
-    }, []);
-
-    if (isInitialized === null) {
-        return <div>Checking system status...</div>; // 避免直接跳转，先检查状态
-    }
-
-    const connectMetaMask = async () => {
-        if (window.ethereum) {
-            try {
-                const web3 = new Web3(window.ethereum);
-                await window.ethereum.request({ method: "eth_requestAccounts" });
-                const accounts = await web3.eth.getAccounts();
-                setWalletAddress(accounts[0]);
-            } catch (error) {
-                console.error("MetaMask connection failed", error);
-                setMessage("Failed to connect to MetaMask");
-            }
-        } else {
-            setMessage("MetaMask is not installed");
-        }
+    const linkWallet = async () => {
+        const usersInfo = await batchGetUserInfoFromWeb3();
+        setLinkedUsersInfo(usersInfo);
     };
 
-    const initRootUser = async () => {
-        if (!walletAddress) {
-            setMessage("Please connect MetaMask");
+    useEffect(() => {
+        linkWallet();
+    }, []);
+
+    const doInit = async () => {
+        if (loggedInUser === "") {
+            toast("Please connect MetaMask", "error")
             return;
         }
 
         setLoading(true);
-        setMessage("");
 
         try {
             const response = await fetch(`${API_BASE_URL}/init-build`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    wallet_address: walletAddress
+                    wallet_address: loggedInUser
                 })
             });
 
             const data = await response.json();
             if (!response.ok) {
-                setMessage(`❌ Error: ${data.error}`);
+                toast(`Error: init-build error: ${data.error}`, "error");
                 setLoading(false);
                 return;
             }
 
             // console.log(data.tx);
-            const txHash = await executeBackendBuiltTx(walletAddress, data.tx);
+            const txHash = await executeBackendBuiltTx(loggedInUser, data.tx);
             const response2 = await fetch(`${API_BASE_URL}/init-exec`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    wallet_address: walletAddress,
+                    wallet_address: loggedInUser,
                     tx_hash: txHash
                 })
             });
 
             const data2 = await response2.json();
             if (response2.ok) {
-                setMessage(`✅ Success! You can enjoy the system now.`);
-                setDone(true);
+                toast("Success! You can enjoy the system now.", "success");
+                setDone(true)
             } else {
-                setMessage(`❌ Error: ${data2.error}`);
+                toast(`Error: init-exec error: ${data2.error}`, "error");
             }
         } catch (error) {
-            setMessage(`❌ Error: ${error.message}`);
+            toast(`Error: try-catch err: ${error.message}`, "error");
             console.log(error);
         }
 
         setLoading(false);
     };
 
-    const mainRender = () => (
-        <div style={styles.overlay}>
-            <div style={styles.box}>
-                <h1 style={styles.title}>System Initialization</h1>
-                <p style={styles.text}>
+    return (
+        <div className="relative min-h-screen w-full flex items-center justify-center bg-gray-100 z-50 overflow-auto p-4">
+            <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-xl w-[700px] text-center">
+                <h1 className="text-3xl font-bold mb-2 text-black">System Initialization</h1>
+                <p className="text-gray-600 text-sm w-full text-left mb-4">
                     Congratulations, the voting system has been successfully deployed!
                 </p>
-                <p style={styles.text}>
+                <p className="text-gray-600 text-sm w-full text-left mb-4">
                     Now, you need to link your Ethereum account to the system to create a root user in the system. This process will setup the database tables and deploy the main NFT contract.
                 </p>
-                <button onClick={connectMetaMask} style={styles.button}>
-                    {walletAddress ? `Connected: ${walletAddress}` : "Connect MetaMask"}
+
+                <button
+                    onClick={linkWallet}
+                    disabled={loading}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded mb-4"
+                >
+                    Refresh Wallets
                 </button>
-                <button onClick={initRootUser} disabled={loading || done} style={styles.buttonPrimary}>
-                    {loading ? "Initializing..." : done ? "Initialization Complete" : "Initialize Root User"}
-                </button>
-                {message && <p style={message.startsWith("✅") ? styles.successMessage : styles.errorMessage}>{message}</p>}
+
+                {Object.keys(linkedUsersInfo).length > 0 && (
+                    <p className="text-gray-600 text-sm w-full text-left mb-2">
+                        You have linked the following wallets, choose one to continue:
+                    </p>
+                )}
+
+                {/*from linkedUsersInfo (string list) build buttons*/}
+                {Object.keys(linkedUsersInfo).map((wallet) => (
+                    <button
+                        onClick={() => {setLoggedInUser(wallet)}}
+                        disabled={loading}
+                        className={wallet === loggedInUser ?
+                            "flex mb-2 px-4 py-2 shadow rounded w-full text-left text-green-600 bg-green-100" :
+                            "flex mb-2 px-4 py-2 shadow rounded w-full text-left bg-gray-100 hover:bg-gray-200"}
+                        style={{"cursor": "pointer"}}
+                    >
+                        {normalizeHex0x(wallet)}
+                    </button>
+                ))}
+
+                {loggedInUser !== "" && <p className="text-gray-600 text-sm w-full text-left mb-4">
+                    Click the button below to execute the initialization process:
+                </p>}
+
+                {loggedInUser !== "" && <button
+                    onClick={doInit}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mb-4"
+                >
+                    Execute Initialization
+                </button>}
+
+                {done && <p className="text-gray-600 text-sm w-full text-left mb-4">
+                    Great, now you can enjoy the system!
+                </p>}
+
+                {done && <button
+                    onClick={restoreHref}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mb-4"
+                >
+                    Execute Initialization
+                </button>}
             </div>
         </div>
     );
-
-    if (isInitialized) {
-        // console.log("System already initialized, redirecting to 404");
-        return <Navigate to="/404" replace />;
-    } else {
-        return mainRender();
-    }
-};
-
-// **✅ 仅在 `Init.js` 内部使用 CSS，不影响其他页面**
-const styles = {
-    overlay: {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f5f5f5",
-        zIndex: 1000, // 确保 `Init` 界面始终在最上层
-    },
-    box: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "30px",
-        borderRadius: "10px",
-        backgroundColor: "#fff",
-        boxShadow: "0px 0px 15px rgba(0, 0, 0, 0.1)",
-        width: "600px",
-        textAlign: "center",
-    },
-    title: {
-        fontSize: "36px",
-        marginBottom: "10px",
-        color: "black",
-    },
-    text: {
-        fontSize: "16px",
-        marginBottom: "20px",
-        color: "#666",
-        textAlign: "left",
-        width: "100%",
-    },
-    button: {
-        padding: "10px 20px",
-        marginBottom: "10px",
-        backgroundColor: "#007bff",
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        cursor: "pointer",
-        width: "100%",
-    },
-    buttonPrimary: {
-        padding: "10px 20px",
-        backgroundColor: "#28a745",
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        cursor: "pointer",
-        width: "100%",
-        marginTop: "10px",
-    },
-    input: {
-        width: "100%",
-        padding: "10px",
-        borderRadius: "5px",
-        border: "1px solid #ddd",
-        marginBottom: "10px",
-        fontSize: "16px",
-    },
-    successMessage: {
-        color: "green",
-        fontSize: "14px",
-        marginTop: "10px",
-    },
-    errorMessage: {
-        color: "red",
-        fontSize: "14px",
-        marginTop: "10px",
-    },
 };
 
 export default Init;
