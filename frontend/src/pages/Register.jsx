@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE_URL } from "../utils/backend.js";
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserStatus, logoutCurrentUser} from "../utils/token.js";
+import {restoreHref} from "../utils/nav.js";
 
 const Register = () => {
     const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ const Register = () => {
     }, []);
 
     const jump = () => {
-        window.location.href = "/";
+        restoreHref();
     }
 
     const register = async () => {
@@ -44,7 +45,7 @@ const Register = () => {
                 setMessage(`✅ Successfully registered! Redirecting in 3 seconds...`);
                 setDone(true);
                 setTimeout(() => {
-                    window.location.href = "/";
+                    restoreHref();
                 }, 3000);
             } else {
                 setMessage(`❌ Error: ${data.error}`);
@@ -110,7 +111,7 @@ const Register = () => {
             break;
         case "registered":
             console.log("Current user is registered, redirecting to main page...");
-            window.location.href = "/";
+            restoreHref();
             break;
         default:
             return mainRender();

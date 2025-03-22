@@ -6,7 +6,7 @@ const roleMenus = {
 };
 
 const navLocations = {
-    "Voting List": "/votes",
+    "Voting List": "/votes/all",
     "Participated Votes": "/votes/mine",
     "Create Vote": "/votes/create",
     "Managed Votes": "/votes/managed",
@@ -29,8 +29,8 @@ function getMenus(role) {
 
 export default function Sidebar({ role, currentPanel }) {
     const menus = getMenus(role);
-    console.log("CURRENT PANEL:", currentPanel);
-    console.log("Menus:", menus);
+    // console.log("CURRENT PANEL:", currentPanel);
+    // console.log("Menus:", menus);
 
     return (
         <aside className="w-1/5 bg-gray-200 text-gray-800 h-full p-6 shadow-md">

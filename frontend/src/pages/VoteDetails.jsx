@@ -81,13 +81,7 @@ export default function VoteDetails() {
             setHasRegistrationState(regState);
             setCurrentState(parseInt(vote.state));
             setOptions(vote.options);
-            console.log("Vote info: ", vote);
             setCanVote(vote.state === 2n && (role === "voter" || role === "" && !vote.needRegistration) && !hv);
-            console.log("User Role: ", role);
-            console.log("voteInfo.needRegistration: ", vote.needRegistration);
-            console.log("hasVoted: ", hv);
-            console.log("userOpt: ", userOpt);
-            console.log("Options: ", vote.options);
             setUserOption(parseInt(userOpt));
             setVoteCounts(voteCounter);
         } catch (err) {
@@ -194,6 +188,7 @@ export default function VoteDetails() {
                                             "block mb-2 px-4 py-2 border rounded w-full text-left text-green-600 bg-green-100" :
                                             "block mb-2 px-4 py-2 border rounded w-full text-left over:bg-gray-100"}
                                         onClick={canVote ? () => handleVote(opt.id) : null}
+                                        disabled={!canVote}
                                     >
                                         {voteInfo.optionType === 1n ? opt.rawText : `Candidate: ${opt.candidate}`} {parseInt(opt.id) === parseInt(userOption) ? "(Your Vote)" : ""}
                                     </button>

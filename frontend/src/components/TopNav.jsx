@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import UserMenu from './UserMenu';
+import {saveHref} from "../utils/nav.js";
 import {getCurrentUserInfo, getCurrentUser, logoutCurrentUser, getGravatarAddress} from "../utils/token.js";
 
 export default function TopNav() {
@@ -29,10 +30,12 @@ export default function TopNav() {
     }
 
     const onLogin = () => {
+        saveHref();
         window.location = "/login"
     }
 
     const onSwitchUser = () => {
+        saveHref();
         window.location = "/switch"
     }
 

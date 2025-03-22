@@ -8,6 +8,7 @@ import {
     normalizeHex0x,
     getUserInfo, getGravatarAddress, getCurrentUserInfo, getCurrentUser
 } from "../utils/token.js";
+import {getHref} from "../utils/nav.js";
 
 const Login = ( {title} ) => {
     const [loading, setLoading] = useState(false);
@@ -47,7 +48,7 @@ const Login = ( {title} ) => {
                     className="w-10 h-10 rounded-full cursor-pointer mr-3"
                 />
                 <div>
-                    0x{loggedInUser.wallet_address.slice(0, 12)}... ({loggedInUser.role === "" ? "⚠️ Not Registered" : "✅ As " + loggedInUser.nickname}, {loggedInUser.state === "unverified" ? "🔴 Unverified" : loggedInUser.wallet_address === getCurrentUser() ? "🔵 Current User" : "🟢 Verified"})
+                    0x{loggedInUser.wallet_address.slice(0, 12)}... ({loggedInUser.role === "" ? "⚠️ Not Registered" : "✅ As " + loggedInUser.nickname}, 🔵 Current User)
                 </div>
             </button>
         )
@@ -66,10 +67,13 @@ const Login = ( {title} ) => {
         setbtnText(bt);
         setLoggedInUser(u);
         // 3 秒后跳转到主页面
+        if (href === "") {
+            href = getHref();
+        }
         setJumpToLocation(href)
-        setTimeout(() => {
-            window.location.href = href;
-        }, 3000);
+        // setTimeout(() => {
+        //     window.location.href = href;
+        // }, 3000);
     }
 
     const login = async (account) => {
@@ -86,7 +90,7 @@ const Login = ( {title} ) => {
                 case "registered":
                     uponValidationSuccess(userInfo,
                         "Already logged in!",
-                        "Back to Home", "/");
+                        "Back to Home", "");
                     return;
                 case "verified":
                     uponValidationSuccess(userInfo,
@@ -134,10 +138,12 @@ const Login = ( {title} ) => {
             const token = data2.token;
             // console.log("用户 Token:", token);
             setTokenFor(account, token);
+            setCurrentUser(account);
 
             // check if the user is registered
             const info = await getCurrentUserInfo();
             const stat = info.state;
+            console.log("info", info);
             if (stat === "verified") {
                 uponValidationSuccess(userInfo,
                     "Wallet verified, user not registered.",
@@ -145,7 +151,7 @@ const Login = ( {title} ) => {
             } else {
                 uponValidationSuccess(userInfo,
                     "Login Success!",
-                    "Back to Home", "/");
+                    "Back to Home", "");
             }
         } catch (error) {
             setMessage(`❌ Error: ${error.message}`);

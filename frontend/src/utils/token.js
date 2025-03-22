@@ -90,7 +90,8 @@ export async function batchGetUserInfoFromWeb3() {
     return batchGetUserInfo(accounts);
 }
 
-async function batchGetUserInfo(accounts) {
+async function
+batchGetUserInfo(accounts) {
     const tokens = [];
     for (const account of accounts) {
         tokens.push(getTokenFor(account));

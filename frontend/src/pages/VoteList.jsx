@@ -6,6 +6,7 @@ import VotingJson from "../artifacts/contracts_Voting_sol_Voting.json";
 import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json";
 import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token.js";
+import {useParams} from "react-router-dom";
 
 const PAGE_SIZE = 5;
 
@@ -29,6 +30,7 @@ const API_MAP = {
 }
 
 export default function VoteList( {mode} ) {
+    const { pg } = useParams();
     const [votingNftAddr, setVotingNftAddr] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [web3, setWeb3] = useState(null);
@@ -152,6 +154,9 @@ export default function VoteList( {mode} ) {
 
     useEffect(() => {
         if (web3 && votingNftAddr) {
+            if (pg) {
+                setPage(parseInt(pg));
+            }
             fetchVoteContracts();
         }
     }, [page, web3, votingNftAddr]);
@@ -176,44 +181,56 @@ export default function VoteList( {mode} ) {
                     ) : (
                         <div className="space-y-4">
                             {votes.map((vote) => (
-                                <div key={vote.id} className="bg-gray-30 rounded-xl p-4 shadow-md hover:shadow-lg transition" onClick={() => {
+                                <div key={vote.id} className="bg-gray-30 rounded-xl p-4 shadow-md hover:shadow-lg transition" style={{"cursor": "point"}} onClick={() => {
                                     window.location.href = `/vote/${vote.contract}`;
                                 }}>
-                                    <div className="flex justify-between items-start">
+                                    <div>
                                         <div>
-                                            <h3 className="text-xl font-bold mb-1">{vote.title}</h3>
-                                            <p className="text-sm text-gray-500">
-                                                {vote.contract}, created at {vote.createdAt}
-                                            </p>
-                                            <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
-                                              {vote.optionType}
-                                            </span>
-                                            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
-                                              {vote.needRegistration ? "Voter Registration Required" : "No Voter Registration"}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 justify-end">
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                                              {vote.state}
-                                            </span>
-
-                                            {vote.isAdmin && (
-                                                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                                            You are Admin
-                                          </span>
-                                            )}
-                                            {vote.userRole === "voter" && (
-                                                <span className="px-3 py-1 bg-cyan-100 text-cyan-800 text-sm rounded-full">
-                                            Voter {vote.hasVoted ? "(Voted)" : "(Not Voted)"}
-                                          </span>
-                                            )}
-                                            {vote.userRole === "candidate" && (
-                                                <span className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full">
-                                            Candidate
-                                          </span>
-                                            )}
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="text-xl font-bold mb-1">{vote.title}</h3>
+                                                    <p className="text-sm text-gray-500">
+                                                        {vote.contract}, created at {vote.createdAt}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2 justify-end">
+                                                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full mt-4">
+                                                        {vote.state}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                                                        {vote.optionType}
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
+                                                        {vote.needRegistration ? "Voter Registration Required" : "No Voter Registration"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2 justify-end">
+                                                    <div className="flex flex-wrap gap-2 justify-end">
+                                                        {vote.isAdmin && (
+                                                            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                                                                You are Admin
+                                                            </span>
+                                                        )}
+                                                        {vote.userRole === "voter" && (
+                                                            <span className="px-3 py-1 bg-cyan-100 text-cyan-800 text-sm rounded-full">
+                                                                Voter {vote.hasVoted ? "(Voted)" : "(Not Voted)"}
+                                                            </span>
+                                                        )}
+                                                        {vote.userRole === "candidate" && (
+                                                            <span className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full">
+                                                                Candidate
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+
                                 </div>
                             ))}
                         </div>
