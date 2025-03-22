@@ -1,12 +1,12 @@
 const roleMenus = {
-    "": ["Voting List"],
+    "": ["All Votes"],
     user: ["Participated Votes"],
     admin: ["Managed Votes", "Create Vote"],
     root: ["Admin Management"],
 };
 
 const navLocations = {
-    "Voting List": "/votes/all",
+    "All Votes": "/votes/all",
     "Participated Votes": "/votes/mine",
     "Create Vote": "/votes/create",
     "Managed Votes": "/votes/managed",

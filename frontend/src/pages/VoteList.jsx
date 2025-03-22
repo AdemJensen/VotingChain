@@ -18,7 +18,7 @@ const STATE_MAP = {
 };
 
 const TITLE_MAP = {
-    "full": "Voting List",
+    "full": "All Votes",
     "mine": "Participated Votes",
     "managed": "Managed Votes",
 }
