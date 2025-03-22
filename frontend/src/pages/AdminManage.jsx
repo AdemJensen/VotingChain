@@ -159,34 +159,32 @@ export default function AdminManage() {
                         </div>
                     </div>
 
-                    <div className="bg-white shadow rounded p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {admins.map((admin) => (
-                                <div
-                                    key={admin.wallet_address}
-                                    className="relative bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg p-4"
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {admins.map((admin) => (
+                            <div
+                                key={admin.wallet_address}
+                                className="relative bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg p-4"
+                            >
+                                {/* 昵称 */}
+                                <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                                    {admin.nickname || "Unnamed User"}
+                                </h3>
+
+                                {/* 地址 */}
+                                <p className="text-sm text-gray-500 break-all mt-3">
+                                    0x{admin.wallet_address}
+                                </p>
+
+                                {/* 删除按钮 */}
+                                <button
+                                    hidden={admin.role === "root"}
+                                    onClick={() => setDeleteTarget(admin.wallet_address)}
+                                    className="absolute top-2 right-2 text-sm text-red-500 hover:text-red-700"
                                 >
-                                    {/* 昵称 */}
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                                        {admin.nickname || "Unnamed User"}
-                                    </h3>
-
-                                    {/* 地址 */}
-                                    <p className="text-sm text-gray-500 break-all mt-3">
-                                        0x{admin.wallet_address}
-                                    </p>
-
-                                    {/* 删除按钮 */}
-                                    <button
-                                        hidden={admin.role === "root"}
-                                        onClick={() => setDeleteTarget(admin.wallet_address)}
-                                        className="absolute top-2 right-2 text-sm text-red-500 hover:text-red-700"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                                    Delete
+                                </button>
+                            </div>
+                        ))}
                     </div>
                 </main>
                 {showSyncModal && (

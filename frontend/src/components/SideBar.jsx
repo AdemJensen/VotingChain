@@ -33,13 +33,7 @@ export default function Sidebar({ role, currentPanel }) {
     // console.log("Menus:", menus);
 
     return (
-        <aside className="w-1/5 bg-gray-200 text-gray-800 h-full p-6 shadow-md">
-            {/* 标题部分 */}
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">📌 Function Panel</h2>
-
-            {/* 分隔线 */}
-            <div className="border-t border-gray-400 mb-4"></div>
-
+        <aside className="bg-gray-200 text-gray-800 h-full p-6 shadow-md">
             {/* 菜单列表 */}
             <ul className="space-y-2">
                 {menus.map((item) => (
