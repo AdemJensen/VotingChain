@@ -14,8 +14,8 @@ import (
 	"strings"
 )
 
-const ContractVotingNFT = "contracts_VotingNFT_sol_VotingNFT"
-const ContractVoting = "contracts_Voting_sol_Voting"
+const ContractVotingNFT = "VotingNFT_sol_VotingNFT"
+const ContractVoting = "Voting_sol_Voting"
 
 // LoadContract 读取 ABI & Bytecode
 func LoadContract(filename string) (string, string, error) {
