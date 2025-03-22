@@ -30,6 +30,7 @@ You need to have the following tools installed on your machine:
 - npm (Preferred version: 10.8.2)
 - golang (Preferred version: 1.23.7)
 - MySQL
+- solc@0.8.1
 
 To test the project, you are recommended to install the following tools:
 
