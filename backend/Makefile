@@ -1,9 +1,8 @@
 all: clean sol_build build copy_essentials
 
 sol_build:
-	cd contracts && npm install
-	solcjs --abi --bin --optimize --overwrite -o contracts_build --base-path . contracts/*.sol
-	cd contracts && node scripts/generateArtifact.js
+	cd ../contracts && make all
+	cp -r ../contracts/contracts_build/ contracts_build
 
 build:
 	go mod tidy
@@ -16,7 +15,6 @@ copy_essentials:
 clean:
 	rm -rf build
 	rm -rf contracts_build
-	rm -rf contracts/node_modules
 
 reset_config:
 	rm config.json

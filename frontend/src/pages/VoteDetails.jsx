@@ -1,8 +1,8 @@
 import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import Web3 from "web3";
-import VotingJson from "../artifacts/contracts_Voting_sol_Voting.json";
-import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json";
+import VotingJson from "../artifacts/Voting_sol_Voting.json";
+import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
 import {getCurrentUser, getCurrentUserInfo, getGravatarAddress, getUserInfo, normalizeHex0x} from "../utils/token";

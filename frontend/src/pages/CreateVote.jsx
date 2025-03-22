@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import Web3 from "web3";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
-import VotingJson from "../artifacts/contracts_Voting_sol_Voting.json"; // 路径根据你项目结构调整
-import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json"; // 路径根据你项目结构调整
+import VotingJson from "../artifacts/Voting_sol_Voting.json"; // 路径根据你项目结构调整
+import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json"; // 路径根据你项目结构调整
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token";
 import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
 import { useToast } from "../context/ToastContext";

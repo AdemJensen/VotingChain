@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { API_BASE_URL } from "../utils/backend.js";
 import {
-    batchGetUserInfoFromWeb3,
     normalizeHex0x,
 } from "../utils/token.js";
 import { restoreHref } from "../utils/nav.js";
 import {executeBackendBuiltTx} from "../utils/contracts.js";
 import {useToast} from "../context/ToastContext.jsx";
+import Web3 from "web3";
 
 const Init = () => {
     const toast = useToast();
@@ -15,14 +15,21 @@ const Init = () => {
     const [linkedUsersInfo, setLinkedUsersInfo] = useState([]);
     const [done, setDone] = useState(false);
 
-    const linkWallet = async () => {
-        const usersInfo = await batchGetUserInfoFromWeb3();
-        setLinkedUsersInfo(usersInfo);
+    const connectMetaMask = async () => {
+        if (window.ethereum) {
+            try {
+                const web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await web3.eth.getAccounts();
+                console.log("accounts", accounts);
+                setLinkedUsersInfo(accounts);
+            } catch (error) {
+                toast(`Error: eth.getAccounts err: ${error.message}`, "error");
+            }
+        } else {
+            toast(`Please install MetaMask`, "error");
+        }
     };
-
-    useEffect(() => {
-        linkWallet();
-    }, []);
 
     const doInit = async () => {
         if (loggedInUser === "") {
@@ -86,9 +93,9 @@ const Init = () => {
                 </p>
 
                 <button
-                    onClick={linkWallet}
+                    onClick={connectMetaMask}
                     disabled={loading}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded mb-4"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mb-4"
                 >
                     Refresh Wallets
                 </button>
@@ -100,7 +107,7 @@ const Init = () => {
                 )}
 
                 {/*from linkedUsersInfo (string list) build buttons*/}
-                {Object.keys(linkedUsersInfo).map((wallet) => (
+                {Object.values(linkedUsersInfo).map((wallet) => (
                     <button
                         onClick={() => {setLoggedInUser(wallet)}}
                         disabled={loading}
@@ -130,9 +137,9 @@ const Init = () => {
 
                 {done && <button
                     onClick={restoreHref}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mb-4"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded mb-4"
                 >
-                    Execute Initialization
+                    Go to Main Page
                 </button>}
             </div>
         </div>

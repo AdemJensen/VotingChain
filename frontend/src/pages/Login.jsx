@@ -187,7 +187,7 @@ const Login = ({ title }) => {
                 <button
                     onClick={done ? jump : linkWallet}
                     disabled={loading}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded mb-4"
+                    className={`w-full ${done ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"} text-white py-2 px-4 rounded mb-4`}
                 >
                     {btnText}
                 </button>

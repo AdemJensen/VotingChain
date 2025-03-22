@@ -55,6 +55,7 @@ const AppRoutes = () => {
             return (
                 <ToastProvider>
                     <Routes>
+                        <Route path="/init" element={<Init />} />
                         <Route path="*" element={<Register />} />
                     </Routes>
                 </ToastProvider>

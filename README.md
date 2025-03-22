@@ -1,3 +1,8 @@
+# VotingChain
+
+VotingChain is a decentralized voting system based on Ethereum blockchain. It is designed to provide a secure, 
+transparent, and tamper-proof voting system for various scenarios.
+
 注意需要使用 solcjs@0.8.1 来进行编译：
 
 ```bash
