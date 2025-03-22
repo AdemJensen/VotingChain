@@ -11,6 +11,7 @@ import (
 type Vote struct {
 	ID           uint64 `gorm:"primaryKey" json:"id"`
 	ContractAddr string `gorm:"type:VARCHAR(100);unique;not null" json:"contract_address"`
+	OwnerAddr    string `gorm:"type:VARCHAR(100);not null" json:"owner_address"`
 	CreateTime   int64  `gorm:"autoCreateTime" json:"create_time"`
 }
 
@@ -21,6 +22,7 @@ func (Vote) TableName() string {
 
 func InsertVote(db *gorm.DB, vote *Vote) error {
 	vote.ContractAddr = utils.NormalizeHex(vote.ContractAddr)
+	vote.OwnerAddr = utils.NormalizeHex(vote.OwnerAddr)
 	err := db.Create(vote).Error
 	if err != nil {
 		return errors.Wrapf(err, "failed to insert vote")
@@ -32,19 +34,28 @@ func InsertVote(db *gorm.DB, vote *Vote) error {
 // PageQueryVotes 分页查询投票
 // page 页码，从 1 开始
 // pageSize 每页大小
-func PageQueryVotes(db *gorm.DB, page, pageSize int) ([]Vote, error) {
+// owner 投票 owner 地址, 为空则查询所有
+func PageQueryVotes(db *gorm.DB, page, pageSize int, owner string) ([]Vote, error) {
 	var votes []Vote
 	// order by create time desc
-	err := db.Order("create_time desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&votes).Error
+	st := db.Model(&Vote{})
+	if owner != "" {
+		st = st.Where("owner_addr = ?", utils.NormalizeHex(owner))
+	}
+	err := st.Order("create_time desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&votes).Error
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to query votes")
 	}
 	return votes, nil
 }
 
-func CountVotes(db *gorm.DB) (int64, error) {
+func CountVotes(db *gorm.DB, owner string) (int64, error) {
 	var count int64
-	err := db.Model(&Vote{}).Count(&count).Error
+	st := db.Model(&Vote{})
+	if owner != "" {
+		st = st.Where("owner_addr = ?", utils.NormalizeHex(owner))
+	}
+	err := st.Count(&count).Error
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count votes")
 	}

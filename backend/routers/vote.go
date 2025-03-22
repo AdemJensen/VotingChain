@@ -29,6 +29,7 @@ func CreateVote(c *gin.Context) {
 	// create in db
 	err := models.InsertVote(database.Db, &models.Vote{
 		ContractAddr: request.VoteAddress,
+		OwnerAddr:    middlewares.GetWalletAddr(c),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -40,8 +41,9 @@ func CreateVote(c *gin.Context) {
 
 func PageQueryVotes(c *gin.Context) {
 	var request struct {
-		Page     int `json:"page"`
-		PageSize int `json:"page_size"`
+		Owner    string `json:"owner"`
+		Page     int    `json:"page"`
+		PageSize int    `json:"page_size"`
 	}
 
 	if err := c.BindJSON(&request); err != nil {
@@ -54,14 +56,14 @@ func PageQueryVotes(c *gin.Context) {
 		return
 	}
 
-	votes, err := models.PageQueryVotes(database.Db, request.Page, request.PageSize)
+	votes, err := models.PageQueryVotes(database.Db, request.Page, request.PageSize, request.Owner)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	// count page
-	count, err := models.CountVotes(database.Db)
+	count, err := models.CountVotes(database.Db, request.Owner)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

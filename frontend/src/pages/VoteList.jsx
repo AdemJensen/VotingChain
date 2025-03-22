@@ -7,7 +7,7 @@ import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json";
 import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token.js";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 const STATE_MAP = {
     0n: "Init",
@@ -16,7 +16,19 @@ const STATE_MAP = {
     3n: "Ended"
 };
 
-export default function VoteList( {mine} ) {
+const TITLE_MAP = {
+    "full": "Voting List",
+    "mine": "Participated Votes",
+    "managed": "Managed Votes",
+}
+
+const API_MAP = {
+    "full": "/votes/page",
+    "mine": "/votes/mine",
+    "managed": "/votes/page",
+}
+
+export default function VoteList( {mode} ) {
     const [votingNftAddr, setVotingNftAddr] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [web3, setWeb3] = useState(null);
@@ -49,10 +61,14 @@ export default function VoteList( {mine} ) {
         setLoading(true);
         try {
             // console.log("Mine:", mine)
-            const pageQueryResp = await fetch(API_BASE_URL + (mine ? "/votes/mine" : "/votes/page"), {
+            const pageQueryResp = await fetch(API_BASE_URL + API_MAP[mode], {
                 method: "POST",
                 headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({ page: page, page_size: PAGE_SIZE })
+                body: JSON.stringify({
+                    owner: mode === "managed" ? getCurrentUser() : "",
+                    page: page,
+                    page_size: PAGE_SIZE
+                })
             });
             const data = await pageQueryResp.json();
             if (!pageQueryResp.ok) {
@@ -148,10 +164,10 @@ export default function VoteList( {mine} ) {
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             <TopNav />
             <div className="flex flex-1">
-                <Sidebar role={userInfo?.role} currentPanel={mine ? "My Records" : "Voting List"} className="w-1/5 bg-gray-100" />
+                <Sidebar role={userInfo?.role} currentPanel={TITLE_MAP[mode]} className="w-1/5 bg-gray-100" />
 
                 <main className="flex-1 p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
-                    <h2 className="text-3xl font-extrabold mb-6">📋 Voting List</h2>
+                    <h2 className="text-3xl font-extrabold mb-6">📋 {TITLE_MAP[mode]}</h2>
 
                     {loading ? (
                         <div className="text-gray-500">Loading votes...</div>

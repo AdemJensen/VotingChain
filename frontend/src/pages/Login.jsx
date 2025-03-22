@@ -57,6 +57,21 @@ const Login = ( {title} ) => {
         window.location.href = jumpToLocation
     }
 
+    const uponValidationSuccess = (u, msg, bt, href) => {
+        setMessage(`✅ ${msg} Redirecting in 3 seconds...`);
+        setDone(true);
+        setLoading(false);
+        setLinkedUsersInfo({})
+        setCurrentUser(u.wallet_address);
+        setbtnText(bt);
+        setLoggedInUser(u);
+        // 3 秒后跳转到主页面
+        setJumpToLocation(href)
+        setTimeout(() => {
+            window.location.href = href;
+        }, 3000);
+    }
+
     const login = async (account) => {
         account = normalizeHex0x(account);
         console.log(account);
@@ -69,32 +84,14 @@ const Login = ( {title} ) => {
             console.log("USER STATE: ", userInfo.state);
             switch (userInfo.state) {
                 case "registered":
-                    setMessage(`✅ Already logged in! Redirecting in 3 seconds...`);
-                    setDone(true);
-                    setLoading(false);
-                    setLinkedUsersInfo({})
-                    setCurrentUser(account);
-                    setbtnText("Back to Home");
-                    setLoggedInUser(userInfo);
-                    // 3 秒后跳转到主页面
-                    setJumpToLocation("/")
-                    setTimeout(() => {
-                        window.location.href = "/";
-                    }, 3000);
+                    uponValidationSuccess(userInfo,
+                        "Already logged in!",
+                        "Back to Home", "/");
                     return;
                 case "verified":
-                    setMessage(`✅ Wallet already verified, user not registered. Redirecting in 3 seconds...`);
-                    setDone(true);
-                    setLoading(false);
-                    setLinkedUsersInfo({})
-                    setCurrentUser(account);
-                    // 3 秒后跳转到注册
-                    setJumpToLocation("/register")
-                    setbtnText("Proceed to Register")
-                    setLoggedInUser(userInfo);
-                    setTimeout(() => {
-                        window.location.href = "/register";
-                    }, 3000);
+                    uponValidationSuccess(userInfo,
+                        "Wallet already verified, user not registered.",
+                        "Proceed to Register", "/register");
                     return;
             }
 
@@ -135,34 +132,20 @@ const Login = ( {title} ) => {
 
             const data2 = await response2.json();
             const token = data2.token;
-            console.log("用户 Token:", token);
+            // console.log("用户 Token:", token);
             setTokenFor(account, token);
-            setCurrentUser(account);
-            setLinkedUsersInfo({})
 
             // check if the user is registered
             const info = await getCurrentUserInfo();
-            setLoggedInUser(info);
-            console.log("new loggedInUser: ", loggedInUser);
             const stat = info.state;
-            console.log("USER STATE: ", stat);
-            setDone(true)
             if (stat === "verified") {
-                setMessage(`✅ Wallet verified, user not registered. Redirecting in 3 seconds...`);
-                // 3 秒后跳转到注册
-                setJumpToLocation("/register");
-                setbtnText("Proceed to Register");
-                setTimeout(() => {
-                    window.location.href = "/register";
-                }, 3000);
+                uponValidationSuccess(userInfo,
+                    "Wallet verified, user not registered.",
+                    "Proceed to Register", "/register");
             } else {
-                setMessage(`✅ Login Success! Redirecting in 3 seconds...`);
-                // 3 秒后跳转到主页面
-                setJumpToLocation("/");
-                setbtnText("Back to Home");
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 3000);
+                uponValidationSuccess(userInfo,
+                    "Login Success!",
+                    "Back to Home", "/");
             }
         } catch (error) {
             setMessage(`❌ Error: ${error.message}`);

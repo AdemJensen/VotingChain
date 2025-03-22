@@ -53,6 +53,9 @@ export default function VoteDetails() {
             const voting = new web3.eth.Contract(VotingJson.abi, contract);
             const votingNFT = new web3.eth.Contract(VotingNFTJson.abi, await getVotingNftAddr());
             const currentUser = normalizeHex0x(getCurrentUser());
+            if (currentUser === "0x") {
+                window.location.href = "/login";
+            }
 
             const vote = await voting.methods.getVote().call();
             const role = await votingNFT.methods.getUserRoleInVoting(currentUser, contract).call();

@@ -25,7 +25,7 @@ export default function TopNav() {
     const onLogout = () => {
         logoutCurrentUser()
         setUserInfo({});
-        window.location = "/login"
+        window.location.reload();
     }
 
     const onLogin = () => {

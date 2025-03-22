@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Init from "./pages/Init.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import Dashboard from "./pages/Home.jsx"; // 主页
+// import Dashboard from "./pages/Home.jsx"; // 主页
 import Profile from "./pages/Profile.jsx"; // 其他页面
 import {getCurrentUser, getUserStatus} from "./utils/token.js"
 import AdminManagement from "./pages/AdminManage.jsx";
@@ -34,7 +34,7 @@ const AppRoutes = () => {
 
     return (
         <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<VoteList mode={"full"} />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/init" element={<Init />} />
             <Route path="/login" element={<Login title={"Login"} />} />
@@ -42,8 +42,9 @@ const AppRoutes = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/admin-manage" element={<AdminManagement />} />
             <Route path="/votes/create" element={<CreateVote />} />
-            <Route path="/votes" element={<VoteList mine={false} />} />
-            <Route path="/votes/mine" element={<VoteList mine={true} />} />
+            <Route path="/votes" element={<VoteList mode={"full"} />} />
+            <Route path="/votes/mine" element={<VoteList mode={"mine"} />} />
+            <Route path="/votes/managed" element={<VoteList mode={"managed"} />} />
             <Route path="/vote/:contract" element={<VoteDetails />} />
             <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>

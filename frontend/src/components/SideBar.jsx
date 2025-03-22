@@ -1,13 +1,15 @@
 const roleMenus = {
-    user: ["Voting List", "My Records"],
-    admin: ["Create Vote"],
+    "": ["Voting List"],
+    user: ["Participated Votes"],
+    admin: ["Managed Votes", "Create Vote"],
     root: ["Admin Management"],
 };
 
 const navLocations = {
     "Voting List": "/votes",
-    "My Records": "/votes/mine",
+    "Participated Votes": "/votes/mine",
     "Create Vote": "/votes/create",
+    "Managed Votes": "/votes/managed",
     "Admin Management": "/admin-manage",
 }
 
@@ -16,9 +18,10 @@ function jumpTo(item) {
 }
 
 function getMenus(role) {
-    const roles = ["user"];
-    if (role === "admin") roles.push("admin");
-    if (role === "root") roles.push("admin", "root");
+    const roles = [""];
+    if (role === "user") roles.push("user");
+    if (role === "admin") roles.push("user", "admin");
+    if (role === "root") roles.push("user", "admin", "root");
     const menuSet = new Set();
     roles.forEach((r) => roleMenus[r].forEach((item) => menuSet.add(item)));
     return Array.from(menuSet);
