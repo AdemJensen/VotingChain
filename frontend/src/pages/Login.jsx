@@ -13,6 +13,35 @@ import {
 } from "../utils/token.js";
 import { getHref } from "../utils/nav.js";
 
+const getRoleBadge = (role) => {
+    switch (role) {
+        case "admin":
+            return (
+                <span className="px-3 py-1 ml-3 bg-pink-600 text-white text-xs rounded-full">
+                    Admin
+                </span>
+            );
+        case "root":
+            return (
+                <span className="px-3 py-1 ml-3 bg-purple-600 text-white text-xs rounded-full">
+                    Root
+                </span>
+            );
+        case "user":
+            return (
+                <span className="px-3 py-1 ml-3 bg-sky-600 text-white text-xs rounded-full">
+                    User
+                </span>
+            );
+        default:
+            return (
+                <span className="px-3 py-1 ml-3 bg-yellow-600 text-white text-xs rounded-full">
+                    Not Registered
+                </span>
+            );
+    }
+}
+
 const Login = ({ title }) => {
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
@@ -51,14 +80,7 @@ const Login = ({ title }) => {
                     <div className="text-xs text-gray-500">{normalizeHex0x(loggedInUser.wallet_address)}</div>
                 </label>
                 <div className="flex items-center gap-2">
-                    {loggedInUser.role === "" ?
-                        <span className="px-3 py-1 ml-3 bg-yellow-600 text-white text-xs rounded-full">
-                            Not Registered
-                        </span> :
-                        <span className="px-3 py-1 ml-3 bg-blue-400 text-white text-xs rounded-full">
-                            Registered
-                        </span>
-                    }
+                    {getRoleBadge(loggedInUser.role)}
                     <span className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
                         Current User
                     </span>
@@ -81,9 +103,6 @@ const Login = ({ title }) => {
         setLoggedInUser(u);
         if (href === "") href = getHref();
         setJumpToLocation(href);
-
-        // 如果你已经有 toast 系统，这里调用
-        // showToast("success", msg);
 
         // 自动跳转
         setTimeout(() => {
@@ -199,14 +218,7 @@ const Login = ({ title }) => {
                             <div className="text-xs text-gray-500">{normalizeHex0x(walletAddress)}</div>
                         </label>
                         <div className="flex items-center gap-2">
-                            {user.role === "" ?
-                                <span className="px-3 py-1 ml-3 bg-yellow-600 text-white text-xs rounded-full">
-                                    Not Registered
-                                </span> :
-                                <span className="px-3 py-1 ml-3 bg-blue-400 text-white text-xs rounded-full">
-                                    Registered
-                                </span>
-                            }
+                            {getRoleBadge(user.role)}
                             {user.state === "unverified" ?
                                 <span className="px-3 py-1 bg-red-600 text-white text-xs rounded-full">
                                     Unverified
