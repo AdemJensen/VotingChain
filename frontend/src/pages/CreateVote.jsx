@@ -109,13 +109,13 @@ export default function CreateVote() {
     if (!userInfo) return <div>Loading...</div>;
 
     return (
-        <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
+        <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800 overflow-hidden">
             <TopNav />
-            <div className="flex flex-1">
-                <Sidebar role={userInfo?.role} currentPanel="Create Vote" className="w-1/5 bg-gray-100" />
+            <div className="flex flex-1 overflow-hidden">
+                <Sidebar role={userInfo?.role} currentPanel="Create Vote" className="w-1/5 bg-gray-100 overflow-y-auto"/>
 
                 <main className="flex-1 p-10 overflow-y-auto">
-                    <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
+                    <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl space-y-6">
                         <h2 className="text-4xl font-extrabold text-gray-800 mb-6">🗳️ Create a New Vote</h2>
                         <p className="text-gray-500 mb-8">
                             Fill in the details below to deploy a new voting contract. Once deployed, a unique voting address will be generated.
@@ -207,7 +207,7 @@ export default function CreateVote() {
                             {/* Submit */}
                             <div className="pt-4">
                                 <button
-                                    className="w-full py-3 px-6 hover:bg-blue-700 text-lg font-semibold rounded-xl shadow-md disabled:opacity-50"
+                                    className="w-full py-3 px-6 hover:bg-blue-700 bg-blue-600 text-white text-lg font-semibold rounded-xl shadow-md disabled:opacity-50"
                                     onClick={handleCreateVote}
                                     disabled={deploying}
                                 >

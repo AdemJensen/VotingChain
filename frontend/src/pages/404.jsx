@@ -14,7 +14,7 @@ export default function NotFoundPage() {
                 </p>
                 <button
                     onClick={() => navigate("/")}
-                    className="px-6 py-3 bg-blue-600 font-medium rounded-xl shadow hover:bg-blue-700 transition-all"
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl shadow hover:bg-blue-700 transition-all"
                 >
                     Go back to Home
                 </button>

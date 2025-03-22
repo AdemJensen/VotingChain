@@ -6,7 +6,6 @@ import { ToastProvider } from "./context/ToastContext";
 import Init from "./pages/Init.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-// import Dashboard from "./pages/Home.jsx"; // 主页
 import Profile from "./pages/Profile.jsx"; // 其他页面
 import {getCurrentUser, getUserInfo} from "./utils/token.js"
 import AdminManagement from "./pages/AdminManage.jsx";

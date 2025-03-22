@@ -56,7 +56,7 @@ export default function TopNav() {
 
     return (
         <div className="flex justify-between items-center bg-white shadow px-6 py-4">
-            <h1 className="text-xl font-bold">VotingChain</h1>
+            <div className="flex items-center"><img src="/vite.svg" alt="80px"/><h1 className="text-xl font-bold ml-4">VotingChain</h1></div>
             <div className="relative">
                 {getCurrentUser() === "" ? (
                     <button className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200" onClick={onLogin}>

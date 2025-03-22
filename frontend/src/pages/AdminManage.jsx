@@ -131,28 +131,28 @@ export default function AdminManage() {
     }, []);
 
     return (
-        <div className="w-screen h-screen flex flex-col bg-gray-100">
+        <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             {/* 顶部导航栏 */}
             <TopNav />
 
-            <div className="flex flex-1">
+            <div className="flex flex-1 overflow-hidden">
                 {/* 侧边栏，占 20% 宽度 */}
-                <Sidebar role={"root"} currentPanel={"Admin Management"} className="w-1/5 bg-gray-200" />
+                <Sidebar role={"root"} currentPanel={"Admin Management"} className="w-1/5 bg-gray-100" />
 
                 {/* 主内容区域，占剩余 80% 宽度 */}
-                <main className="flex-1 p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
+                <main className="flex-1 overflow-y-auto p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-2xl font-bold">Admin Management</h2>
                         <div className="flex justify-between items-center mb-4">
                             <button
                                 onClick={() => setShowSyncModal(true)}
-                                className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+                                className="bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-700 text-white mr-4"
                             >
                                 Sync With Blockchain
                             </button>
                             <button
                                 onClick={() => setShowAddModal(true)}
-                                className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+                                className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 text-white"
                             >
                                 Add Admin
                             </button>
@@ -203,7 +203,7 @@ export default function AdminManage() {
                                 </button>
                                 <button
                                     onClick={handleSyncAdminList}
-                                    className="px-4 py-2 text-red-600 rounded"
+                                    className="px-4 py-2 text-red-800 bg-red-200 hover:bg-red-300 rounded"
                                 >
                                     Confirm Sync
                                 </button>
@@ -231,7 +231,7 @@ export default function AdminManage() {
                                 </button>
                                 <button
                                     onClick={handleAddAdmin}
-                                    className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                                 >
                                     Confirm Add
                                 </button>
@@ -255,7 +255,7 @@ export default function AdminManage() {
                                 </button>
                                 <button
                                     onClick={handleDeleteAdmin}
-                                    className="px-4 py-2 text-red-600 rounded"
+                                    className="px-4 py-2 bg-red-600 text-white hover:bg-red-800 rounded"
                                 >
                                     Confirm Delete
                                 </button>

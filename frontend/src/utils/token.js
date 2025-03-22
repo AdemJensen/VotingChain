@@ -124,5 +124,8 @@ export async function getCurrentUserInfo() {
 }
 
 export function getGravatarAddress(email, size) {
+    if (!email) {
+        email = ""
+    }
     return `https://www.gravatar.com/avatar/${md5(email)}?s=${size}&d=identicon`;
 }

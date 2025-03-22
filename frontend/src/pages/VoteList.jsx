@@ -30,6 +30,19 @@ const API_MAP = {
     "managed": "/votes/page",
 }
 
+const getPanelStateColor = (state) => {
+    switch (state) {
+        case "Init":
+            return ` bg-yellow-600 text-white `;
+        case "Registration":
+            return ` bg-blue-600 text-white `;
+        case "Voting":
+            return ` bg-green-600 text-white `;
+        case "Ended":
+            return ` bg-red-600 text-white `;
+    }
+}
+
 export default function VoteList( {mode} ) {
     const toast = useToast();
     const { pg } = useParams();
@@ -170,10 +183,10 @@ export default function VoteList( {mode} ) {
     return (
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             <TopNav />
-            <div className="flex flex-1">
+            <div className="flex flex-1 overflow-hidden">
                 <Sidebar role={userInfo?.role} currentPanel={TITLE_MAP[mode]} className="w-1/5 bg-gray-100" />
 
-                <main className="flex-1 p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
+                <main className="flex-1 overflow-y-auto p-8 bg-white rounded-lg shadow-lg mx-8 my-6">
                     <h2 className="text-3xl font-extrabold mb-6">📋 {TITLE_MAP[mode]}</h2>
 
                     {loading ? (
@@ -183,12 +196,12 @@ export default function VoteList( {mode} ) {
                     ) : (
                         <div className="space-y-4">
                             {votes.map((vote) => (
-                                <div key={vote.id} className="bg-gray-30 rounded-xl p-4 shadow-md hover:shadow-lg transition" style={{"cursor": "point"}} onClick={() => {
+                                <div key={vote.id} className="bg-gray-100 rounded-xl p-4 shadow-md hover:shadow-lg transition" style={{"cursor": "pointer"}} onClick={() => {
                                     window.location.href = `/vote/${vote.contract}`;
                                 }}>
                                     <div>
                                         <div>
-                                            <div className="flex justify-between items-start">
+                                            <div className="flex justify-between items-start mb-2">
                                                 <div>
                                                     <h3 className="text-xl font-bold mb-1">{vote.title}</h3>
                                                     <p className="text-sm text-gray-500">
@@ -196,7 +209,7 @@ export default function VoteList( {mode} ) {
                                                     </p>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2 justify-end">
-                                                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full mt-4">
+                                                    <span className={"px-3 py-1 text-sm rounded-full mt-3" + getPanelStateColor(vote.state)}>
                                                         {vote.state}
                                                     </span>
                                                 </div>

@@ -151,15 +151,19 @@ export default function VoteDetails() {
 
     // console.log("candidateInfoLookup", candidateInfoLookup);
     return (
-        <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
+        <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800 overflow-hidden">
             <TopNav />
-            <div className="flex flex-1">
-                <Sidebar role={user?.role} currentPanel="Vote Details" className="w-1/5 bg-gray-100" />
+            <div className="flex flex-1 overflow-hidden">
+                <Sidebar
+                    role={user?.role}
+                    currentPanel="Vote Details"
+                    className="w-1/5 bg-gray-100 overflow-y-auto"
+                />
 
                 <main className="flex-1 p-10 overflow-y-auto">
                     <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-xl space-y-6">
                         <h2 className="text-3xl font-extrabold">{voteInfo.title}</h2>
-                        <p className="text-gray-700 mb-4">{voteInfo.description}</p>
+                        <p className="text-gray-700 mb-4 whitespace-pre-line">{voteInfo.description}</p>
 
                         <table className="w-full text-left text-sm border-t border-gray-200">
                             <tbody>
@@ -186,38 +190,50 @@ export default function VoteDetails() {
                             </div>
                         </div>
 
-                        {voteInfo.state !== 3n && (
-                            <div>
-                                { canVote ? (
-                                    <h3 className="text-lg font-semibold mb-2 mt-4">Vote Now:</h3>
-                                ) : (
-                                    <h3 className="text-lg font-semibold mb-2 mt-4">Options:</h3>
-                                )}
-                                {options.length === 0 && <div className="text-gray-500 text-sm">Currently no option available.</div>}
-                                {options.map(opt => (
-                                    <button
-                                        key={opt.id}
-                                        className={parseInt(opt.id) === parseInt(userOption) ?
-                                            "flex mb-2 px-4 py-2 border rounded w-full text-left text-green-600 bg-green-100" :
-                                            "flex mb-2 px-4 py-2 border rounded w-full text-left over:bg-gray-100"}
-                                        onClick={canVote ? () => handleVote(opt.id) : null}
-                                        disabled={!canVote}
-                                    >
-                                        {voteInfo.optionType === 0n && (<img
-                                            src={getGravatarAddress(candidateInfoLookup[opt.id]?.email, 80)}
-                                            alt="AVT"
-                                            className="w-10 h-10 rounded-full cursor-pointer"
-                                        />)}
-                                        {voteInfo.optionType === 0n && (<label className={"ml-4"}>
-                                            {candidateInfoLookup[opt.id]?.nickname} {parseInt(opt.id) === parseInt(userOption) && "(Your Vote)"}
-                                            <div className="text-xs text-gray-500">{opt.candidate}</div>
-                                        </label>)}
-                                        {/*{voteInfo.optionType === 1n && (opt.rawText + parseInt(opt.id) === parseInt(userOption) ? " (Your Vote)" : "")}*/}
-                                        {voteInfo.optionType === 1n && opt.rawText} {voteInfo.optionType === 1n && parseInt(opt.id) === parseInt(userOption) && "(Your Vote)"}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        <div>
+                            { canVote ? (
+                                <h3 className="text-lg font-semibold mb-2 mt-4">Vote Now:</h3>
+                            ) : (
+                                <h3 className="text-lg font-semibold mb-2 mt-4">Options:
+                                    <span className="px-3 py-1 ml-3 bg-gray-200 text-gray-400 text-xs rounded-full">
+                                        Preview Only
+                                    </span>
+                                </h3>
+                            )}
+                            {options.length === 0 && <div className="text-gray-500 text-sm">Currently no option available.</div>}
+                            {options.map(opt => (
+                                <button
+                                    key={opt.id}
+                                    className={parseInt(opt.id) === parseInt(userOption) ?
+                                        "flex mb-2 px-4 py-2 shadow rounded w-full text-left text-green-600 bg-green-100" :
+                                        "flex mb-2 px-4 py-2 shadow rounded w-full text-left bg-gray-100 hover:bg-gray-200"}
+                                    onClick={canVote ? () => handleVote(opt.id) : null}
+                                    style={{"cursor": canVote ? "pointer" : "default"}}
+                                    disabled={!canVote}
+                                >
+                                    {voteInfo.optionType === 0n && (<img
+                                        src={getGravatarAddress(candidateInfoLookup[opt.id]?.email, 80)}
+                                        alt="AVT"
+                                        className="w-10 h-10 rounded-full cursor-pointer"
+                                    />)}
+                                    {voteInfo.optionType === 0n && (<label className={"ml-4"}>
+                                        {candidateInfoLookup[opt.id]?.nickname}
+                                        <div className="text-xs text-gray-500">{opt.candidate}</div>
+                                    </label>)}
+                                    <div>
+                                        {voteInfo.optionType === 1n && opt.rawText}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {parseInt(opt.id) === parseInt(userOption) &&
+                                            <span className="px-3 py-1 ml-3 bg-green-600 text-white text-xs rounded-full">
+                                                Your Vote
+                                            </span>
+                                        }
+                                    </div>
+
+                                </button>
+                            ))}
+                        </div>
 
                         {(voteInfo.state === 3n || isAdmin) && (
                             <div>
@@ -229,7 +245,11 @@ export default function VoteDetails() {
                                     return (
                                         <div key={opt.id} className="mb-3">
                                             <div className={"flex justify-between text-sm mb-1" + (parseInt(opt.id) === parseInt(userOption) ? " text-green-700" : "")}>
-                                                <span >{voteInfo.optionType === 1n ? opt.rawText : `Candidate: ${candidateInfoLookup[opt.id]?.nickname} (${opt.candidate})`} {parseInt(opt.id) === parseInt(userOption) && " - Your Vote"}</span>
+                                                <span>{voteInfo.optionType === 1n ? opt.rawText : `${candidateInfoLookup[opt.id]?.nickname} (${opt.candidate})`} {parseInt(opt.id) === parseInt(userOption) && (
+                                                    <span className="px-3 py-1 ml-3 bg-green-600 text-white text-xs rounded-full">
+                                                        Your Vote
+                                                    </span>)}
+                                                </span>
                                                 <span>{count} votes ({percent}%)</span>
                                             </div>
                                             <div className="w-full bg-gray-200 h-4 rounded">
@@ -242,19 +262,19 @@ export default function VoteDetails() {
                         )}
 
                         {voteInfo.optionType === 0n && voteInfo.state === 1n && userRole === "" && (
-                            <button onClick={handleRegisterCandidate} className="mt-4 px-4 py-2 bg-purple-600 rounded">
+                            <button onClick={handleRegisterCandidate} className="mt-4 mr-12 px-4 py-2 bg-red-400 hover:bg-red-600 text-white rounded">
                                 Register as Candidate
                             </button>
                         )}
 
                         {hasRegistrationState && voteInfo.state === 1n && userRole === "" && (
-                            <button onClick={handleRegisterVoter} className="mt-4 px-4 py-2 bg-purple-600 rounded">
+                            <button onClick={handleRegisterVoter} className="mt-4 mr-12 px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded">
                                 Register as Voter
                             </button>
                         )}
 
                         {isAdmin && currentState < 3 && (
-                            <button onClick={handleNextState} className="mt-6 px-4 py-2 rounded">
+                            <button onClick={handleNextState} className="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded">
                                 Advance to Next State
                             </button>
                         )}
