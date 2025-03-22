@@ -1,16 +1,12 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
 import Web3 from "web3";
 import VotingJson from "../artifacts/contracts_Voting_sol_Voting.json";
 import VotingNFTJson from "../artifacts/contracts_VotingNFT_sol_VotingNFT.json";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
-import {
-    getCurrentUser,
-    getCurrentUserInfo,
-    normalizeHex0x
-} from "../utils/token";
-import { getVotingNftAddr } from "../utils/backend";
+import {getCurrentUser, getCurrentUserInfo, getGravatarAddress, getUserInfo, normalizeHex0x} from "../utils/token";
+import {getVotingNftAddr} from "../utils/backend";
 
 const STATE_MAP = ["Init", "Registration", "Voting", "Ended"];
 const OPTION_TYPE_MAP = {
@@ -32,6 +28,8 @@ export default function VoteDetails() {
     const [options, setOptions] = useState([]);
     const [userOption, setUserOption] = useState(0n);
     const [voteCounts, setVoteCounts] = useState({});
+    const [candidateInfoLookup, setCandidateInfoLookup] = useState(null);
+    const [prepDone, setPrepDone] = useState(false);
 
     useEffect(() => {
         if (window.ethereum) {
@@ -81,9 +79,20 @@ export default function VoteDetails() {
             setHasRegistrationState(regState);
             setCurrentState(parseInt(vote.state));
             setOptions(vote.options);
+
+            // for each option, get the candidate info
+            const candidateInfo = {};
+            for (const opt of vote.options) {
+                if (!opt.candidate || opt.candidate === "") continue;
+                candidateInfo[opt.id] = await getUserInfo(opt.candidate);
+            }
+            setCandidateInfoLookup(candidateInfo);
+            // console.log("candidateInfo:", candidateInfo)
+
             setCanVote(vote.state === 2n && (role === "voter" || role === "" && !vote.needRegistration) && !hv);
             setUserOption(parseInt(userOpt));
             setVoteCounts(voteCounter);
+            setPrepDone(true);
         } catch (err) {
             console.error("Failed to load vote details:", err);
         }
@@ -133,10 +142,11 @@ export default function VoteDetails() {
         }
     };
 
-    if (!voteInfo || !user) return <div className="p-10 text-gray-500">Loading vote details...</div>;
+    if (!voteInfo || !user || !prepDone) return <div className="p-10 text-gray-500">Loading vote details...</div>;
 
     const totalVotes = Object.values(voteCounts).reduce((acc, val) => acc + val, 0);
 
+    // console.log("candidateInfoLookup", candidateInfoLookup);
     return (
         <div className="w-screen h-screen flex flex-col bg-gray-50 text-gray-800">
             <TopNav />
@@ -185,12 +195,22 @@ export default function VoteDetails() {
                                     <button
                                         key={opt.id}
                                         className={parseInt(opt.id) === parseInt(userOption) ?
-                                            "block mb-2 px-4 py-2 border rounded w-full text-left text-green-600 bg-green-100" :
-                                            "block mb-2 px-4 py-2 border rounded w-full text-left over:bg-gray-100"}
+                                            "flex mb-2 px-4 py-2 border rounded w-full text-left text-green-600 bg-green-100" :
+                                            "flex mb-2 px-4 py-2 border rounded w-full text-left over:bg-gray-100"}
                                         onClick={canVote ? () => handleVote(opt.id) : null}
                                         disabled={!canVote}
                                     >
-                                        {voteInfo.optionType === 1n ? opt.rawText : `Candidate: ${opt.candidate}`} {parseInt(opt.id) === parseInt(userOption) ? "(Your Vote)" : ""}
+                                        {voteInfo.optionType === 0n && (<img
+                                            src={getGravatarAddress(candidateInfoLookup[opt.id]?.email, 80)}
+                                            alt="AVT"
+                                            className="w-10 h-10 rounded-full cursor-pointer"
+                                        />)}
+                                        {voteInfo.optionType === 0n && (<label className={"ml-4"}>
+                                            {candidateInfoLookup[opt.id]?.nickname} {parseInt(opt.id) === parseInt(userOption) && "(Your Vote)"}
+                                            <div className="text-xs text-gray-500">{opt.candidate}</div>
+                                        </label>)}
+                                        {/*{voteInfo.optionType === 1n && (opt.rawText + parseInt(opt.id) === parseInt(userOption) ? " (Your Vote)" : "")}*/}
+                                        {voteInfo.optionType === 1n && opt.rawText} {voteInfo.optionType === 1n && parseInt(opt.id) === parseInt(userOption) && "(Your Vote)"}
                                     </button>
                                 ))}
                             </div>
@@ -205,8 +225,8 @@ export default function VoteDetails() {
                                     const percent = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
                                     return (
                                         <div key={opt.id} className="mb-3">
-                                            <div className="flex justify-between text-sm mb-1">
-                                                <span>{voteInfo.optionType === 1n ? opt.rawText : `Candidate: ${opt.candidate}`} {opt.id === userOption ? "(Your Vote)" : ""}</span>
+                                            <div className={"flex justify-between text-sm mb-1" + (parseInt(opt.id) === parseInt(userOption) ? " text-green-700" : "")}>
+                                                <span >{voteInfo.optionType === 1n ? opt.rawText : `Candidate: ${candidateInfoLookup[opt.id]?.nickname} (${opt.candidate})`} {parseInt(opt.id) === parseInt(userOption) && " - Your Vote"}</span>
                                                 <span>{count} votes ({percent}%)</span>
                                             </div>
                                             <div className="w-full bg-gray-200 h-4 rounded">

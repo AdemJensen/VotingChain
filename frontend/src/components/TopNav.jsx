@@ -20,7 +20,7 @@ export default function TopNav() {
             <h1 className="text-xl font-bold">VotingChain</h1>
         </div>
     } else {
-        gravatarUrl = getGravatarAddress(userInfo.email, 40);
+        gravatarUrl = getGravatarAddress(userInfo.email, 120);
     }
 
     const onLogout = () => {

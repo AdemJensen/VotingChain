@@ -90,7 +90,7 @@ export default function Profile() {
 
 
                         <label className="block font-semibold mb-1">Gravatar Preview</label>
-                        <img src={getGravatarAddress(userInfo.email, 80)} alt="Gravatar Preview" className="rounded-full border mb-2" />
+                        <img src={getGravatarAddress(userInfo.email, 160)} alt="Gravatar Preview" className="rounded-full border mb-2" />
                         <p className="text-sm text-gray-600">Go to <a href={"https://gravatar.com/"} target={"_blank"}>Gravatar</a> to customize your avatar.</p>
                         <button
                             onClick={handleSave}

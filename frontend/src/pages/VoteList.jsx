@@ -201,18 +201,22 @@ export default function VoteList( {mode} ) {
                                             </div>
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
-                                                        {vote.optionType}
-                                                    </span>
-                                                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
-                                                        {vote.needRegistration ? "Voter Registration Required" : "No Voter Registration"}
-                                                    </span>
+                                                    {vote.optionType  && (
+                                                        <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                                                            {vote.optionType}
+                                                        </span>
+                                                    )}
+                                                    {vote.needRegistration && (
+                                                        <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
+                                                            Voter Registration Required
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-wrap gap-2 justify-end">
                                                     <div className="flex flex-wrap gap-2 justify-end">
                                                         {vote.isAdmin && (
                                                             <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                                                                You are Admin
+                                                                Admin
                                                             </span>
                                                         )}
                                                         {vote.userRole === "voter" && (
