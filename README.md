@@ -12,7 +12,7 @@ transparent, and tamper-proof voting system for various scenarios. MIT License.
 - **ERC-721 Based Voting Token**: Using ERC-721 tokens to represent the voting rights of voters.
 - **Multi-user Support**: The system supports multiple users, each with their own Ethereum account.
 
-![multi-user.png](doc-images/multi-user.png)
+![multi_user.png](doc-images/multi_user.png)
 
 ![main_frame.png](doc-images/main_frame.png)
 
