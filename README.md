@@ -12,13 +12,16 @@ transparent, and tamper-proof voting system for various scenarios. MIT License.
 - **ERC-721 Based Voting Token**: Using ERC-721 tokens to represent the voting rights of voters.
 - **Multi-user Support**: The system supports multiple users, each with their own Ethereum account.
 
-![multi_user.png](doc-images/multi_user.png)
-
-![main_frame.png](doc-images/main_frame.png)
-
-![reg_predefined_txt.png](doc-images/reg_predefined_txt.png)
-
-![results_page.png](doc-images/results_page.png)
+<table>
+  <tr>
+    <td><img src="doc-images/reg_predefined_txt.png" width="400" alt="reg_predefined_txt"></td>
+    <td><img src="doc-images/main_frame.png" width="600" alt="main_frame"></td>
+  </tr>
+  <tr>
+    <td><img src="doc-images/multi_user.png" width="400" alt="multi_user"></td>
+    <td><img src="doc-images/results_page.png" width="400" alt="results_page"></td>
+  </tr>
+</table>
 
 ## Installation
 
@@ -76,7 +79,7 @@ You should see the backend and frontend up and running. If so, open your browser
 
 Follow the instructions on the webpage, link to your Ethereum account and migrate DB tables.
 
-![sys_init.png](doc-images/sys_init.png)
+<img src="doc-images/sys_init.png" width="600" alt="sys_init">
 
 ## Known Issues
 
