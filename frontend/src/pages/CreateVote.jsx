@@ -16,6 +16,7 @@ export default function CreateVote() {
     const [description, setDescription] = useState("");
     const [optionType, setOptionType] = useState("RawText");
     const [needRegistration, setNeedRegistration] = useState(false);
+    const [candidateNeedApproval, setCandidateNeedApproval] = useState(false);
     const [rawOptions, setRawOptions] = useState([""]);
     const [contractAddress, setContractAddress] = useState("");
     const [deploying, setDeploying] = useState(false);
@@ -64,6 +65,7 @@ export default function CreateVote() {
                     description,
                     optionType === "RawText" ? 1 : 0,
                     needRegistration,
+                    candidateNeedApproval,
                     rawOptions
                 ],
             });
@@ -98,6 +100,7 @@ export default function CreateVote() {
 
             setContractAddress(votingAddress);
             toast("Voting contract deployed and granted successfully!", "success");
+            window.location.href = "/vote/" + votingAddress;
         } catch (err) {
             console.error(err);
             toast("Contract deployment failed：" + err.message, "error");
@@ -171,6 +174,19 @@ export default function CreateVote() {
                                 />
                                 <label className="text-sm text-gray-700">Require voter registration before voting</label>
                             </div>
+
+                            {/* Candidate Approval */}
+                            {optionType === "Candidate" && (
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        className="mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        checked={candidateNeedApproval}
+                                        onChange={() => setCandidateNeedApproval(!candidateNeedApproval)}
+                                    />
+                                    <label className="text-sm text-gray-700">Candidate needs approval after registration</label>
+                                </div>
+                            )}
 
                             {/* RawText Options */}
                             {optionType === "RawText" && (

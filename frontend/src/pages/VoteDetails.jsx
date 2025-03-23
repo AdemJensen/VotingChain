@@ -5,7 +5,14 @@ import VotingJson from "../artifacts/Voting_sol_Voting.json";
 import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
-import {getCurrentUser, getCurrentUserInfo, getGravatarAddress, getUserInfo, normalizeHex0x} from "../utils/token";
+import {
+    getCurrentUser,
+    getCurrentUserInfo,
+    getGravatarAddress,
+    getUserInfo,
+    hexEqual,
+    normalizeHex0x
+} from "../utils/token";
 import {getVotingNftAddr} from "../utils/backend";
 import { useToast } from "../context/ToastContext";
 
@@ -28,6 +35,7 @@ export default function VoteDetails() {
     const [hasRegistrationState, setHasRegistrationState] = useState(false);
     const [currentState, setCurrentState] = useState(0);
     const [options, setOptions] = useState([]);
+    const [pendingCandidates, setPendingCandidates] = useState([]);
     const [userOption, setUserOption] = useState(0n);
     const [voteCounts, setVoteCounts] = useState({});
     const [candidateInfoLookup, setCandidateInfoLookup] = useState(null);
@@ -66,12 +74,25 @@ export default function VoteDetails() {
             const allTokens = await votingNFT.methods.getAllTokensByVotingContract(contract).call();
 
             const voteCounter = {};
-            allTokens.forEach(t => {
-                if (t.role !== "voter") return;
-                const optId = t.option;
-                if (!voteCounter[optId]) voteCounter[optId] = 0;
-                voteCounter[optId]++;
-            });
+            const pendingCandidates = [];
+            const candidateInfo = {};
+            for (const i in allTokens) {
+                const t = allTokens[i];
+                // console.log("token:", t)
+                switch (t.metadata.role) {
+                    case "pending_candidate":
+                        // add to pending candidates
+                        candidateInfo[t.owner] = await getUserInfo(t.owner);
+                        pendingCandidates.push(t);
+                        break;
+                    case "voter":
+                        if (!voteCounter[t.metadata.option]) voteCounter[t.metadata.option] = 0;
+                        voteCounter[t.metadata.option]++;
+                        break;
+                }
+            }
+            console.log("pendingCandidates:", pendingCandidates);
+            setPendingCandidates(pendingCandidates);
 
             setVoteInfo(vote);
             setIsAdmin(isOwner);
@@ -83,10 +104,9 @@ export default function VoteDetails() {
             setOptions(vote.options);
 
             // for each option, get the candidate info
-            const candidateInfo = {};
             for (const opt of vote.options) {
                 if (!opt.candidate || opt.candidate === "") continue;
-                candidateInfo[opt.id] = await getUserInfo(opt.candidate);
+                candidateInfo[opt.candidate] = await getUserInfo(opt.candidate);
             }
             setCandidateInfoLookup(candidateInfo);
             // console.log("candidateInfo:", candidateInfo)
@@ -120,6 +140,17 @@ export default function VoteDetails() {
             loadVoteDetails();
         } catch (err) {
             toast("Registration failed: " + err.message, "error");
+        }
+    };
+
+    const handleApproveCandidate = async (candidate) => {
+        try {
+            const voting = new web3.eth.Contract(VotingJson.abi, contract);
+            await voting.methods.approveCandidate(candidate).send({ from: normalizeHex0x(getCurrentUser()) });
+            toast("Candidate approved!");
+            loadVoteDetails();
+        } catch (err) {
+            toast("Approve candidate failed: " + err.message, "error");
         }
     };
 
@@ -170,6 +201,7 @@ export default function VoteDetails() {
                             <tr><td className="font-semibold">Contract Address:</td><td className="font-mono break-all bg-gray-100 p-2 rounded">{contract}</td></tr>
                             <tr><td className="font-semibold">Current State:</td><td className="bg-blue-100 text-blue-800 px-3 py-1 rounded">{STATE_MAP[currentState]}</td></tr>
                             <tr><td className="font-semibold">Option Type:</td><td className="bg-purple-100 text-purple-800 px-3 py-1 rounded">{OPTION_TYPE_MAP[voteInfo.optionType]}</td></tr>
+                            <tr><td className="font-semibold">Need Candidate Approval:</td><td className={`px-3 py-1 rounded ${voteInfo.candidateNeedApproval ? "bg-pink-100 text-pink-800" : "bg-sky-100 text-sky-800"}`}>{voteInfo.candidateNeedApproval ? "Yes" : "No"}</td></tr>
                             <tr><td className="font-semibold">Need Voter Registration:</td><td className={`px-3 py-1 rounded ${voteInfo.needRegistration ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}`}>{voteInfo.needRegistration ? "Yes" : "No"}</td></tr>
                             <tr><td className="font-semibold">Your Role: </td><td className={`px-3 py-1 rounded ${userRole ? "bg-cyan-100 text-cyan-800" : "bg-gray-200 text-gray-600"}`}>{userRole || "Visitor"} {hasVoted && userRole === "voter" && "(Voted)"} {isAdmin ? "& Administrator" : ""}</td></tr>
                             </tbody>
@@ -200,7 +232,47 @@ export default function VoteDetails() {
                                     </span>
                                 </h3>
                             )}
-                            {options.length === 0 && <div className="text-gray-500 text-sm">Currently no option available.</div>}
+                            {options.length === 0 && (pendingCandidates.length === 0 || !isAdmin) && <div className="text-gray-500 text-sm">Currently no option available.</div>}
+                            {pendingCandidates.map(opt => {
+                                if (!isAdmin && !hexEqual(opt.owner, getCurrentUser())) {
+                                    console.log("skip candidate:", opt.owner, getCurrentUser());
+                                    return null;
+                                }
+                                return (
+                                    <button
+                                        className={
+                                            "flex mb-2 px-4 py-2 shadow rounded w-full text-left bg-yellow-100 hover:bg-yellow-200"}
+                                    >
+                                        <img
+                                            src={getGravatarAddress(candidateInfoLookup[opt.owner]?.email, 80)}
+                                            alt="AVT"
+                                            className="w-10 h-10 rounded-full cursor-pointer"
+                                        />
+                                        <label className={"ml-4"}>
+                                            {candidateInfoLookup[opt.owner]?.nickname}
+                                            <div className="text-xs text-gray-500">{opt.owner}</div>
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            {voteInfo.state === 1n ? <span
+                                                className="px-3 py-1 ml-3 bg-yellow-600 text-white text-xs rounded-full">
+                                                Pending
+                                            </span> : <span
+                                                className="px-3 py-1 ml-3 bg-red-600 text-white text-xs rounded-full">
+                                                Not Approved
+                                            </span>}
+                                        </div>
+                                        {isAdmin && voteInfo.state === 1n && (
+                                            <button
+                                                className="px-3 py-1 ml-3 bg-blue-600 text-white text-xs rounded"
+                                                style={{"marginLeft": "auto"}}
+                                                onClick={() => handleApproveCandidate(opt.owner)}
+                                            >
+                                                Approve
+                                            </button>
+                                        )}
+                                    </button>
+                                )}
+                            )}
                             {options.map(opt => (
                                 <button
                                     key={opt.id}
@@ -212,12 +284,12 @@ export default function VoteDetails() {
                                     disabled={!canVote}
                                 >
                                     {voteInfo.optionType === 0n && (<img
-                                        src={getGravatarAddress(candidateInfoLookup[opt.id]?.email, 80)}
+                                        src={getGravatarAddress(candidateInfoLookup[opt.candidate]?.email, 80)}
                                         alt="AVT"
                                         className="w-10 h-10 rounded-full cursor-pointer"
                                     />)}
                                     {voteInfo.optionType === 0n && (<label className={"ml-4"}>
-                                        {candidateInfoLookup[opt.id]?.nickname}
+                                        {candidateInfoLookup[opt.candidate]?.nickname}
                                         <div className="text-xs text-gray-500">{opt.candidate}</div>
                                     </label>)}
                                     <div>
@@ -230,7 +302,6 @@ export default function VoteDetails() {
                                             </span>
                                         }
                                     </div>
-
                                 </button>
                             ))}
                         </div>
@@ -245,7 +316,7 @@ export default function VoteDetails() {
                                     return (
                                         <div key={opt.id} className="mb-3">
                                             <div className={"flex justify-between text-sm mb-1" + (parseInt(opt.id) === parseInt(userOption) ? " text-green-700" : "")}>
-                                                <span>{voteInfo.optionType === 1n ? opt.rawText : `${candidateInfoLookup[opt.id]?.nickname} (${opt.candidate})`} {parseInt(opt.id) === parseInt(userOption) && (
+                                                <span>{voteInfo.optionType === 1n ? opt.rawText : `${candidateInfoLookup[opt.candidate]?.nickname} (${opt.candidate})`} {parseInt(opt.id) === parseInt(userOption) && (
                                                     <span className="px-3 py-1 ml-3 bg-green-600 text-white text-xs rounded-full">
                                                         Your Vote
                                                     </span>)}
@@ -267,7 +338,7 @@ export default function VoteDetails() {
                             </button>
                         )}
 
-                        {hasRegistrationState && voteInfo.state === 1n && userRole === "" && (
+                        {voteInfo.needRegistration && voteInfo.state === 1n && userRole === "" && (
                             <button onClick={handleRegisterVoter} className="mt-4 mr-12 px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded">
                                 Register as Voter
                             </button>

@@ -14,6 +14,10 @@ export function normalizeHex(hex) {
     return hex;
 }
 
+export function hexEqual(hex1, hex2) {
+    return normalizeHex(hex1) === normalizeHex(hex2);
+}
+
 export function normalizeHex0x(hex) {
     hex = normalizeHex(hex);
     return "0x" + hex;

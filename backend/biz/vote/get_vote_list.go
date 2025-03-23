@@ -15,13 +15,19 @@ type NftTokenMeta struct {
 	Option         *big.Int       `json:"option"`
 }
 
-func GetUserRelatedListFromBlockchain(ctx context.Context, walletAddr string) ([]NftTokenMeta, error) {
+type NftInfo struct {
+	TokenId  *big.Int       `json:"tokenId"`
+	Owner    common.Address `json:"owner"`
+	Metadata NftTokenMeta   `json:"metadata"`
+}
+
+func GetUserRelatedListFromBlockchain(ctx context.Context, walletAddr string) ([]NftInfo, error) {
 	client, err := utils.NewEthClient()
 	if err != nil {
 		return nil, errors.Wrapf(err, "New client err")
 	}
 
-	var res []NftTokenMeta
+	var res []NftInfo
 	err = utils.CallViewMethod(
 		ctx,
 		client,

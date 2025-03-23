@@ -122,7 +122,7 @@ func PageQueryMyVotes(c *gin.Context) {
 	// get vote info
 	votes := make([]models.Vote, 0)
 	for _, token := range tokens {
-		v, err := models.GetVoteByContractAddr(database.Db, token.VotingContract.Hex())
+		v, err := models.GetVoteByContractAddr(database.Db, token.Metadata.VotingContract.Hex())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

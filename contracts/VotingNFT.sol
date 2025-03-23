@@ -123,6 +123,14 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         tokenMetadata[tokenId].option = option;
     }
 
+    function updateTokenRole(uint256 tokenId, string memory role) external onlyRole(MINTER_ROLE) {
+        if (tokenId == 0) {
+            revert("Token does not exist (Zero value)");
+        }
+        require(ownerOf(tokenId) != address(0), "Token does not exist");
+        tokenMetadata[tokenId].role = role;
+    }
+
     function getAllTokenIdsByVotingContract(address votingContract) public view returns (uint256[] memory) {
         return voteTokens[votingContract];
     }
@@ -131,20 +139,25 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         return userTokens[user];
     }
 
-    function getAllTokensByVotingContract(address votingContract) public view returns (VotingMetadata[] memory) {
+    struct TokenInfo {
+        uint256 tokenId;
+        address owner;
+        VotingMetadata metadata;
+    }
+    function getAllTokensByVotingContract(address votingContract) public view returns (TokenInfo[] memory) {
         uint256[] memory tokenIds = getAllTokenIdsByVotingContract(votingContract);
-        VotingMetadata[] memory tokens = new VotingMetadata[](tokenIds.length);
+        TokenInfo[] memory tokens = new TokenInfo[](tokenIds.length);
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            tokens[i] = tokenMetadata[tokenIds[i]];
+            tokens[i] = TokenInfo(tokenIds[i], ownerOf(tokenIds[i]), tokenMetadata[tokenIds[i]]);
         }
         return tokens;
     }
 
-    function getAllTokensByUser(address user) public view returns (VotingMetadata[] memory) {
+    function getAllTokensByUser(address user) public view returns (TokenInfo[] memory) {
         uint256[] memory tokenIds = getAllTokenIdsByUser(user);
-        VotingMetadata[] memory tokens = new VotingMetadata[](tokenIds.length);
+        TokenInfo[] memory tokens = new TokenInfo[](tokenIds.length);
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            tokens[i] = tokenMetadata[tokenIds[i]];
+            tokens[i] = TokenInfo(tokenIds[i], ownerOf(tokenIds[i]), tokenMetadata[tokenIds[i]]);
         }
         return tokens;
     }

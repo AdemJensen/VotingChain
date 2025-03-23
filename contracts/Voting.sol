@@ -10,6 +10,7 @@ contract Voting {
     enum State { Init, Registration, Voting, Ended }
     string public constant UserVoteRoleVoter = "voter";
     string public constant UserVoteRoleCandidate = "candidate";
+    string public constant UserVoteRolePendingCandidate = "pending_candidate";
 
     struct Option {
         int id; // starts from 1
@@ -24,6 +25,7 @@ contract Voting {
         string description;
         OptionType optionType;
         bool needRegistration;
+        bool candidateNeedApproval;
         State state;
         Option[] options;
     }
@@ -36,6 +38,7 @@ contract Voting {
         string memory _description,
         OptionType _optionType,
         bool _needRegistration,
+        bool _candidateNeedApproval,
         string[] memory _raw_text_options
     ) {
         votingNFT = VotingNFT(_nftContract);
@@ -48,6 +51,7 @@ contract Voting {
         vote.description = _description;
         vote.optionType = _optionType;
         vote.needRegistration = _needRegistration;
+        vote.candidateNeedApproval = _candidateNeedApproval;
         vote.state = State.Init;
 
         if (_optionType == OptionType.RawText) {
@@ -121,12 +125,34 @@ contract Voting {
     function registerCandidate() public {
         require(votingNFT.isAuthorizedMinter(address(this)), "Voting contract not authorized");
         require(vote.optionType == OptionType.Candidate, "Voting contract does not support candidate registration");
-        votingNFT.mint(msg.sender, address(this), UserVoteRoleCandidate);
+        require(vote.state == State.Registration, "Voting contract not in registration state");
+        if (vote.candidateNeedApproval && !isOwner(msg.sender)) {
+            // Owner can register without approval
+            votingNFT.mint(msg.sender, address(this), UserVoteRolePendingCandidate);
+        } else {
+            votingNFT.mint(msg.sender, address(this), UserVoteRoleCandidate);
+            // add the candidate as an option
+            vote.options.push(Option({
+                id: int(vote.options.length) + 1,
+                rawText: "",
+                candidate: msg.sender
+            }));
+        }
+    }
+
+    function approveCandidate(address candidate) public {
+        require(votingNFT.isAuthorizedMinter(address(this)), "Voting contract not authorized");
+        require(vote.optionType == OptionType.Candidate, "Voting contract does not support candidate registration");
+        require(vote.state == State.Registration, "Voting contract not in registration state");
+        require(isOwner(msg.sender), "Only owner can approve candidate");
+        require(vote.candidateNeedApproval, "Voting contract does not require candidate approval");
+        require(compareStrings(votingNFT.getUserRoleInVoting(candidate, address(this)), UserVoteRolePendingCandidate), "User is not a pending candidate");
+        votingNFT.updateTokenRole(votingNFT.getUserTokenInVoting(candidate, address(this)), UserVoteRoleCandidate);
         // add the candidate as an option
         vote.options.push(Option({
             id: int(vote.options.length) + 1,
             rawText: "",
-            candidate: msg.sender
+            candidate: candidate
         }));
     }
 

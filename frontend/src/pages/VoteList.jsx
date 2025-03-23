@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import Web3 from "web3";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
@@ -7,7 +7,7 @@ import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json";
 import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
 import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token.js";
 import {useParams} from "react-router-dom";
-import { useToast } from "../context/ToastContext";
+import {useToast} from "../context/ToastContext";
 
 const PAGE_SIZE = 5;
 
@@ -116,6 +116,7 @@ export default function VoteList( {mode} ) {
                     state: STATE_MAP[vote.state],
                     optionType: vote.optionType === 1n ? "Predefined Text Options" : "Candidate Registration Mode",
                     needRegistration: vote.needRegistration,
+                    candidateNeedApproval: vote.candidateNeedApproval,
                     isAdmin: normalizeHex0x(vote.admin) === normalizeHex0x(currentUser),
                     userRole: userInfo.role,
                     hasVoted: userInfo.voted
@@ -134,8 +135,7 @@ export default function VoteList( {mode} ) {
     const getVoteInfo = async (address) => {
         try {
             const contract = new web3.eth.Contract(VotingJson.abi, address);
-            const vote = await contract.methods.getVote().call();
-            return vote;
+            return await contract.methods.getVote().call();
         } catch (err) {
             console.warn(`Failed to get vote info from ${address}:`, err);
             return null;
@@ -226,6 +226,11 @@ export default function VoteList( {mode} ) {
                                                             Voter Registration Required
                                                         </span>
                                                     )}
+                                                    {vote.candidateNeedApproval && (
+                                                        <span className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full">
+                                                            Candidate Approval Required
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-wrap gap-2 justify-end">
                                                     <div className="flex flex-wrap gap-2 justify-end">
@@ -242,6 +247,11 @@ export default function VoteList( {mode} ) {
                                                         {vote.userRole === "candidate" && (
                                                             <span className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full">
                                                                 Candidate
+                                                            </span>
+                                                        )}
+                                                        {vote.userRole === "pending_candidate" && (
+                                                            <span className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full">
+                                                                Candidate {vote.state === "Registration" ? "(Pending)" : "(Not Approved)"}
                                                             </span>
                                                         )}
                                                     </div>
