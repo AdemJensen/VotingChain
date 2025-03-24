@@ -4,10 +4,11 @@ import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
 import VotingJson from "../artifacts/Voting_sol_Voting.json";
 import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json";
-import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
-import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token.js";
+import {getManagerAddr, getVotingNftAddr} from "../utils/backend.js";
+import {getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token.js";
 import {useParams} from "react-router-dom";
 import {useToast} from "../context/ToastContext";
+import Manager from "../artifacts/Manager_sol_Manager.json";
 
 const PAGE_SIZE = 5;
 
@@ -69,7 +70,7 @@ export default function VoteList( {mode} ) {
 
     useEffect(() => {
         const t = async () => {
-            setVotingNftAddr(await getVotingNftAddr());
+            setVotingNftAddr(getVotingNftAddr());
         }
         t()
     }, []);
@@ -77,23 +78,24 @@ export default function VoteList( {mode} ) {
     const fetchVoteContracts = async () => {
         setLoading(true);
         try {
-            // console.log("Mine:", mine)
-            const pageQueryResp = await fetch(API_BASE_URL + API_MAP[mode], {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({
-                    owner: mode === "managed" ? getCurrentUser() : "",
-                    page: page,
-                    page_size: PAGE_SIZE
-                })
-            });
-            const data = await pageQueryResp.json();
-            if (!pageQueryResp.ok) {
-                toast(`Failed to fetch votes on page ${page}: ` + data.error, "error");
-                return;
+            const web3 = new Web3(window.ethereum)
+            const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
+            let data;
+            switch (mode) {
+                case "full":
+                    data = await Contract.methods.pageQueryVotes(page, PAGE_SIZE).call();
+                    break;
+                case "mine":
+                    data = await Contract.methods.pageQueryUserParticipatedVotes(getCurrentUser(), page, PAGE_SIZE).call();
+                    break;
+                case "managed":
+                    data = await Contract.methods.pageQueryUserVotes(getCurrentUser(), page, PAGE_SIZE).call();
+                    break;
+                default:
+                    window.location.href = "/404"
             }
 
-            const contractAddresses = data.votes.map(v => normalizeHex0x(v.contract_address));
+            const contractAddresses = data.votes.map(v => normalizeHex0x(v.contractAddr));
             const createTimes = data.votes.map(v => v.create_time);
 
             const currentUser = getCurrentUser();

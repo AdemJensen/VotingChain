@@ -152,6 +152,10 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         return tokens;
     }
 
+    function countTokensByUser(address user) public view returns (uint) {
+        return userTokens[user].length;
+    }
+
     // ** 显式重写 supportsInterface 方法 **
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControlEnumerable) returns (bool) {
         return ERC721Enumerable.supportsInterface(interfaceId) || AccessControlEnumerable.supportsInterface(interfaceId);

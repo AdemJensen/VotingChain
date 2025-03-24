@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import UserMenu from './UserMenu';
 import {saveHref} from "../utils/nav.js";
 import {getCurrentUserInfo, getCurrentUser, logoutCurrentUser, getGravatarAddress} from "../utils/token.js";
+import {getManagerAddr} from "../utils/backend.js";
 
 export default function TopNav() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -34,6 +35,11 @@ export default function TopNav() {
         window.location = "/login"
     }
 
+    const onInit = () => {
+        saveHref();
+        window.location = "/init"
+    }
+
     const onSwitchUser = () => {
         saveHref();
         window.location = "/switch"
@@ -56,13 +62,21 @@ export default function TopNav() {
 
     return (
         <div className="flex justify-between items-center bg-white shadow px-6 py-4">
-            <div className="flex items-center"><img src="/vite.svg" alt="80px"/><h1 className="text-xl font-bold ml-4">VotingChain</h1></div>
-            <div className="relative">
-                {getCurrentUser() === "" ? (
-                    <button className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 bg-blue-400 hover:bg-blue-500 text-white" onClick={onLogin}>
-                        Login
-                    </button>
-                ) : menu()}
+            <div className="flex items-center">
+                <img src="/vite.svg" alt="80px"/>
+                <h1 className="text-xl font-bold ml-4">VotingChain</h1>
+                <button className="px-4 py-2 ml-8 rounded-lg transition-all duration-200 bg-gray-200 hover:bg-gray-300 text-gray-600" onClick={onInit}>
+                    Network: {getManagerAddr()}
+                </button>
+            </div>
+            <div className="flex items-center">
+                <div className="relative">
+                    {getCurrentUser() === "" ? (
+                        <button className="w-full px-4 py-2 rounded-lg transition-all duration-200 bg-blue-400 hover:bg-blue-500 text-white" onClick={onLogin}>
+                            Login
+                        </button>
+                    ) : menu()}
+                </div>
             </div>
         </div>
     );

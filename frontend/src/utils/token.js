@@ -1,5 +1,7 @@
-import {API_BASE_URL} from "./backend.js";
+import Manager from "../artifacts/Manager_sol_Manager.json";
 import md5 from "md5";
+import Web3 from "web3";
+import {getManagerAddr} from "./backend.js";
 
 export function normalizeHex(hex) {
     if (!hex) {
@@ -23,72 +25,40 @@ export function normalizeHex0x(hex) {
     return "0x" + hex;
 }
 
-export function attachTokenForCurrentUser(headers) {
-    return attachTokenFor(getCurrentUser(), headers);
-}
-
-export function attachTokenFor(walletAddr, headers) {
-    walletAddr = normalizeHex(walletAddr);
-    const token = getTokenFor(walletAddr)
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    return headers;
-}
-
-export function setTokenFor(walletAddr, token) {
-    walletAddr = normalizeHex(walletAddr);
-    localStorage.setItem('authToken_' + walletAddr, token);
-}
-
 export function logoutCurrentUser() {
-    setTokenFor(getCurrentUser(), "");
     setCurrentUser("");
 }
 
-export function getTokenFor(walletAddr) {
-    walletAddr = normalizeHex(walletAddr);
-    return localStorage.getItem('authToken_' + walletAddr) ?? "";
-}
-
 export function setCurrentUser(walletAddr) {
-    walletAddr = normalizeHex(walletAddr);
+    walletAddr = normalizeHex0x(walletAddr);
     console.log("Current user switched to: ", walletAddr);
     localStorage.setItem('currentUser', walletAddr);
 }
 
 export function getCurrentUser() {
-    return normalizeHex(localStorage.getItem('currentUser')) ?? "";
+    return normalizeHex0x(localStorage.getItem('currentUser')) ?? "";
 }
 
-export function getTokenForCurrentUser() {
-    console.log("Get token for current user (%s): %s", getCurrentUser(), getTokenFor(getCurrentUser()));
-    return getTokenFor(getCurrentUser());
-}
-
-export async function getUserStatus(walletAddr) {
-    walletAddr = normalizeHex(walletAddr);
+async function getUserStatus(web3, walletAddr) {
+    walletAddr = normalizeHex0x(walletAddr);
     try {
-        const response = await fetch(API_BASE_URL + "/auth/state", {
-            method: "GET",
-            headers: attachTokenFor(walletAddr, { "Content-Type": "application/json" })
-        });
-
-        if (!response.ok) {
-            console.error("Error checking user status:", response.status);
-            return "unverified";
+        const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
+        const exists = await Contract.methods.userExists(walletAddr).call();
+        if (exists) {
+            return "registered";
+        } else {
+            return "verified";
         }
-        const data = await response.json();
-        return data.status;
         // 系统未初始化
     } catch (error) {
         console.error("Error checking user status:", error);
-        return "unverified";
+        return "verified";
     }
 }
 
 export async function getCurrentUserStatus() {
-    return getUserStatus(getCurrentUser());
+    const web3 = new Web3(window.ethereum)
+    return getUserStatus(web3, getCurrentUser());
 }
 
 export async function batchGetUserInfoFromWeb3() {
@@ -97,32 +67,29 @@ export async function batchGetUserInfoFromWeb3() {
     return batchGetUserInfo(accounts);
 }
 
-async function
-batchGetUserInfo(accounts) {
-    const tokens = [];
-    for (const account of accounts) {
-        tokens.push(getTokenFor(account));
+async function batchGetUserInfo(accounts) {
+    const userMap = {};
+    const web3 = new Web3(window.ethereum)
+    const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
+    for (let i = 0; i < accounts.length; i++) {
+        const account = normalizeHex0x(accounts[i])
+        const info = await Contract.methods.getUserByAddress(account).call();
+        userMap[account] = {
+            wallet_address: account,
+            nickname: info.nickname,
+            email: info.email,
+            role: info.role,
+            state: info.role === "" ? "verified" : "registered",
+        }
     }
-
-    const response = await fetch(API_BASE_URL + "/auth/info", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            wallet_addresses: accounts,
-            jwt_tokens: tokens
-        })
-    });
-    if (!response.ok) {
-        console.error("Error checking user status:", response.status);
-        return {};
-    }
-    const res = await response.json();
-    return res.info;
+    return userMap;
 }
 
 export async function getUserInfo(account) {
-    account = normalizeHex(account);
+    account = normalizeHex0x(account);
     const info = await batchGetUserInfo([account]);
+    console.log("User info: ", info);
+    console.log("User info[account]: ", info[account]);
     return info[account];
 }
 

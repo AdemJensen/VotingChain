@@ -1,62 +1,49 @@
+import Manager from "../artifacts/Manager_sol_Manager.json";
 import { useEffect, useState } from "react";
 import TopNav from "../components/TopNav.jsx";
 import Sidebar from "../components/SideBar.jsx";
-import {attachTokenForCurrentUser, getCurrentUser} from "../utils/token.js";
-import {executeBackendBuiltTx} from "../utils/contracts.js";
-import {API_BASE_URL} from "../utils/backend.js";
+import {waitForReceipt} from "../utils/contracts.js";
 import { useToast } from "../context/ToastContext";
+import Web3 from "web3";
+import {normalizeHex0x} from "../utils/token.js";
+import {getManagerAddr} from "../utils/backend.js";
 
 export default function AdminManage() {
     const toast = useToast();
     const [admins, setAdmins] = useState([]);
-    const [showSyncModal, setShowSyncModal] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newAddress, setNewAddress] = useState("");
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const fetchAdmins = async () => {
-        const response = await fetch(API_BASE_URL + "/admin/list", {
-            method: "GET",
-            headers: attachTokenForCurrentUser({ "Content-Type": "application/json" })
-        });
-        if (!response.ok) {
-            console.error("Error checking user status:", response.status);
-            return;
-        }
-        const res = await response.json();
-        console.log(res.users)
-        setAdmins(res.users)
+        const web3 = new Web3(window.ethereum)
+        const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
+        const adminAddresses = await Contract.methods.getAllAdmins().call();
+        const admins = await Promise.all(adminAddresses.map(async (addr) => {
+            const info = await Contract.methods.getUserByAddress(addr).call();
+            return {
+                email: info.email,
+                nickname: info.nickname,
+                role: info.role,
+                wallet_address: info.walletAddr,
+                create_time: info.createdAt,
+            };
+        }));
+        console.log(admins)
+        setAdmins(admins)
     };
 
     const handleAddAdmin = async () => {
         try {
-            const response = await fetch(API_BASE_URL + "/admin/add-build", {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({
-                    wallet_address: newAddress
-                })
-            });
-            const res = await response.json();
-            if (!response.ok) {
-                toast("Failed to build add admin contract: " + res.error, "error");
-                return;
-            }
-
-            const txHash = await executeBackendBuiltTx(getCurrentUser(), res.tx);
-            console.log("Transaction hash:", txHash);
-
-            const response2 = await fetch(API_BASE_URL + "/admin/add-exec", {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({
-                    wallet_address: newAddress,
-                    tx_hash: txHash,
-                })
-            });
-            const res2 = await response2.json();
-            if (!response2.ok) {
-                toast("Failed to build add admin to db: " + res2.error, "error");
+            const web3 = new Web3(window.ethereum)
+            const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
+            const tx = await Contract.methods.addAdmin(normalizeHex0x(newAddress)).call();
+            const receipt = await waitForReceipt(web3, tx)
+            console.log("Transaction receipt:", receipt);
+            // if error in receipt, throw error
+            if (receipt.status === false) {
+                console.error("Transaction error:", receipt);
+                toast("Transaction error: " + receipt, "error");
                 return;
             }
             setNewAddress("");
@@ -71,33 +58,15 @@ export default function AdminManage() {
 
     const handleDeleteAdmin = async () => {
         try {
-            const response = await fetch(API_BASE_URL + "/admin/remove-build", {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({
-                    wallet_address: deleteTarget
-                })
-            });
-            const res = await response.json();
-            if (!response.ok) {
-                toast("Failed to build remove admin contract: " + res.error, "error");
-                return;
-            }
-
-            const txHash = await executeBackendBuiltTx(getCurrentUser(), res.tx);
-            console.log("Transaction hash:", txHash);
-
-            const response2 = await fetch(API_BASE_URL + "/admin/remove-exec", {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({
-                    wallet_address: deleteTarget,
-                    tx_hash: txHash,
-                })
-            });
-            const res2 = await response2.json();
-            if (!response2.ok) {
-                toast("Failed to build remove admin to db: " + res2.error, "error");
+            const web3 = new Web3(window.ethereum)
+            const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
+            const tx = await Contract.methods.removeAdmin(normalizeHex0x(deleteTarget)).call();
+            const receipt = await waitForReceipt(web3, tx)
+            console.log("Transaction receipt:", receipt);
+            // if error in receipt, throw error
+            if (receipt.status === false) {
+                console.error("Transaction error:", receipt);
+                toast("Transaction error: " + receipt, "error");
                 return;
             }
             setDeleteTarget(null);
@@ -108,23 +77,6 @@ export default function AdminManage() {
             toast("Failed to remove admin: " + err.message, "error");
         }
     };
-
-    const handleSyncAdminList = async () => {
-        const response = await fetch(API_BASE_URL + "/admin/sync", {
-            method: "POST",
-            headers: attachTokenForCurrentUser({ "Content-Type": "application/json" })
-        });
-        if (!response.ok) {
-            console.error("Error checking user status:", response.status);
-            toast("Failed to sync with blockchain", "error");
-            return {};
-        }
-        const res = await response.json();
-        console.log(res);
-        await fetchAdmins();
-        setShowSyncModal(false);
-        toast("Successfully synced with blockchain!", "success");
-    }
 
     useEffect(() => {
         fetchAdmins();
@@ -144,12 +96,6 @@ export default function AdminManage() {
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-2xl font-bold">Admin Management</h2>
                         <div className="flex justify-between items-center mb-4">
-                            <button
-                                onClick={() => setShowSyncModal(true)}
-                                className="bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-700 text-white mr-4"
-                            >
-                                Sync With Blockchain
-                            </button>
                             <button
                                 onClick={() => setShowAddModal(true)}
                                 className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 text-white"
@@ -187,28 +133,6 @@ export default function AdminManage() {
                         ))}
                     </div>
                 </main>
-                {showSyncModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded shadow-lg w-150">
-                            <h2 className="text-xl font-bold mb-4">Sync With Blockchain</h2>
-                            <p className="mb-4" style={{lineBreak: "anywhere"}}>Are you sure you want to sync with blockchain?</p>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    onClick={() => setShowSyncModal(false)}
-                                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSyncAdminList}
-                                    className="px-4 py-2 text-red-800 bg-red-200 hover:bg-red-300 rounded"
-                                >
-                                    Confirm Sync
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {showAddModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

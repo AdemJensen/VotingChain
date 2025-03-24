@@ -12,6 +12,7 @@ import AdminManagement from "./pages/AdminManage.jsx";
 import CreateVote from "./pages/CreateVote.jsx";
 import VoteList from "./pages/VoteList.jsx";
 import VoteDetails from "./pages/VoteDetails.jsx";
+import {getManagerAddr} from "./utils/backend.js";
 
 const AppRoutes = () => {
     const [userInfo, setUserInfo] = useState(null)
@@ -20,6 +21,8 @@ const AppRoutes = () => {
     useEffect( () => {
         const fetchUserStatus = async () => {
             const ui = await getUserInfo(getCurrentUser())
+            console.log("ui", ui)
+            console.log("getCurrentUser", getCurrentUser())
             setUserInfo(ui)
             if (!ui) {
                 setUserState("unverified")
@@ -27,8 +30,20 @@ const AppRoutes = () => {
                 setUserState(ui.state)
             }
         }
-        fetchUserStatus();
+        if (getManagerAddr() !== "") {
+            fetchUserStatus();
+        }
     }, []);
+
+    if (getManagerAddr() === "" && window.location.pathname !== "/init") {
+        // if the app is not initialized, redirect to init page
+        window.location.href = "/init"
+    }
+
+    if (window.location.pathname === "/init") {
+        // on any clause, if you want init, just go to init
+        return <ToastProvider><Init /></ToastProvider>
+    }
 
     if (userState === null) {
         return <div>Loading...</div>

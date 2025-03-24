@@ -29,6 +29,7 @@ contract Manager is AccessControlEnumerable {
 
     User[] public users;
     mapping(address => uint256) public userIndex;
+    mapping(string => bool) public emailExists;
 
     Vote[] public votes;
     mapping(address => uint256) public voteIndex;
@@ -38,6 +39,7 @@ contract Manager is AccessControlEnumerable {
 
     constructor(string memory email, string memory nickname) {
         owner = msg.sender;
+        _addUser(address(0), "", "", ""); // add a dummy user to fill the 0 index
         _addUser(owner, email, nickname, UserRoleRoot);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ROOT_ROLE, msg.sender);
@@ -45,6 +47,10 @@ contract Manager is AccessControlEnumerable {
 
     function setNFTAddr(address _nftAddr) external onlyRole(ROOT_ROLE) {
         nftAddr = _nftAddr;
+    }
+
+    function getNFTAddr() public view returns (address) {
+        return nftAddr;
     }
 
     // ============================== User Related Functions ==================================
@@ -55,35 +61,56 @@ contract Manager is AccessControlEnumerable {
 
     function _addUser(address walletAddr, string memory email, string memory nickname, string memory role) internal {
         require(userIndex[walletAddr] == 0, "User already exists");
+        require(!emailExists[email], "Email already exists");
         userIndex[walletAddr] = users.length;
         users.push(User(walletAddr, email, nickname, role, block.timestamp));
+    }
+
+    function userExists(address walletAddr) public view returns (bool) {
+        if (walletAddr == address(0)) {
+            return false;
+        }
+        return userIndex[walletAddr] > 0;
+    }
+
+    function getUserByAddress(address walletAddr) public view returns (User memory) {
+        require(walletAddr != address(0), "Address cannot be 0");
+        uint256 index = userIndex[walletAddr];
+        if (index == 0) {
+            return User(walletAddr, "", "", "", 0);
+        }
+        return users[index];
     }
 
     function updateUser(string memory nickname) public {
         uint256 index = userIndex[msg.sender];
         require(index > 0, "User not found");
-        users[index - 1].nickname = nickname;
+        users[index].nickname = nickname;
     }
 
     function _updateUserRole(address walletAddr, string memory role) internal {
         uint256 index = userIndex[walletAddr];
+        require(walletAddr != address(0), "Address cannot be 0");
         require(index > 0, "User not found");
-        users[index - 1].role = role;
+        users[index].role = role;
     }
 
     function addAdmin(address adminAddress) external onlyRole(ROOT_ROLE) {
+        require(adminAddress != address(0), "Address cannot be 0");
         require(adminAddress != owner, "Cannot add owner as admin");
         grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
         _updateUserRole(adminAddress, UserRoleAdmin);
     }
 
     function removeAdmin(address adminAddress) external onlyRole(ROOT_ROLE) {
+        require(adminAddress != address(0), "Address cannot be 0");
         require(adminAddress != owner, "Cannot remove owner from admin list");
         revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
         _updateUserRole(adminAddress, UserRoleUser);
     }
 
     function isAdministrator(address adminAddress) public view returns (bool) {
+        require(adminAddress != address(0), "Address cannot be 0");
         return hasRole(DEFAULT_ADMIN_ROLE, adminAddress);
     }
 
@@ -111,35 +138,47 @@ contract Manager is AccessControlEnumerable {
         userVotes[msg.sender].push(contractAddr);
     }
 
-    function pageQueryVotes(uint page, uint pageSize) public view returns (Vote[] memory) {
-        uint[] memory idxList = _pageQueryListReversed(page, pageSize, votes.length);
-        Vote[] memory page = new Vote[](idxList.length);
-        for (uint i = 0; i < idxList.length; i++) {
-            page[i] = votes[idxList[i]];
-        }
-
-        return page;
+    struct VotePageQueryResult {
+        Vote[] votes;
+        uint count;
+        uint page;
+        uint page_size;
+        uint total_pages;
     }
 
-    function pageQueryUserVotes(uint page, uint pageSize) public view returns (Vote[] memory) {
+    function _newVotePageQueryResult(Vote[] memory votes, uint totalCount, uint page, uint pageSize) public pure returns (VotePageQueryResult memory) {
+        return VotePageQueryResult(votes, totalCount, page, pageSize, (totalCount + pageSize - 1) / pageSize);
+    }
+
+    function pageQueryVotes(uint page, uint pageSize) public view returns (VotePageQueryResult memory) {
+        uint[] memory idxList = _pageQueryListReversed(page, pageSize, votes.length);
+        Vote[] memory content = new Vote[](idxList.length);
+        for (uint i = 0; i < idxList.length; i++) {
+            content[i] = votes[idxList[i]];
+        }
+
+        return _newVotePageQueryResult(content, votes.length, page, pageSize);
+    }
+
+    function pageQueryUserVotes(uint page, uint pageSize) public view returns (VotePageQueryResult memory) {
         address[] memory userVotesList = userVotes[msg.sender];
         uint[] memory idxList = _pageQueryListReversed(page, pageSize, userVotesList.length);
-        Vote[] memory page = new Vote[](idxList.length);
+        Vote[] memory content = new Vote[](idxList.length);
         for (uint i = 0; i < idxList.length; i++) {
-            page[i] = votes[voteIndex[userVotesList[idxList[i]]]];
+            content[i] = votes[voteIndex[userVotesList[idxList[i]]]];
         }
 
-        return page;
+        return _newVotePageQueryResult(content, userVotesList.length, page, pageSize);
     }
 
-    function pageQueryUserParticipatedVotes(uint page, uint pageSize) public view returns (Vote[] memory) {
+    function pageQueryUserParticipatedVotes(uint page, uint pageSize) public view returns (VotePageQueryResult memory) {
         require(nftAddr != address(0), "NFT contract address not set");
         VotingNFT.TokenInfo[] memory tokenList = VotingNFT(nftAddr).pageQueryTokensByUser(msg.sender, page, pageSize);
-        Vote[] memory page = new Vote[](tokenList.length);
+        Vote[] memory content = new Vote[](tokenList.length);
         for (uint i = 0; i < tokenList.length; i++) {
-            page[i] = votes[voteIndex[tokenList[i].metadata.votingContract]];
+            content[i] = votes[voteIndex[tokenList[i].metadata.votingContract]];
         }
-        return page;
+        return _newVotePageQueryResult(content, VotingNFT(nftAddr).countTokensByUser(msg.sender), page, pageSize);
     }
 
     // ============================== Utility Functions ==================================

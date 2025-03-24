@@ -1,8 +1,7 @@
 import {useEffect, useState} from "react";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
-import {getCurrentUserInfo, getGravatarAddress, attachTokenForCurrentUser} from "../utils/token.js";
-import {API_BASE_URL} from "../utils/backend.js";
+import {getCurrentUserInfo, getGravatarAddress} from "../utils/token.js";
 import { useToast } from "../context/ToastContext";
 
 export default function Profile() {

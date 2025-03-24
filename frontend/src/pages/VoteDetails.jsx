@@ -59,7 +59,7 @@ export default function VoteDetails() {
     const loadVoteDetails = async () => {
         try {
             const voting = new web3.eth.Contract(VotingJson.abi, contract);
-            const votingNFT = new web3.eth.Contract(VotingNFTJson.abi, await getVotingNftAddr());
+            const votingNFT = new web3.eth.Contract(VotingNFTJson.abi, getVotingNftAddr());
             const currentUser = normalizeHex0x(getCurrentUser());
             if (currentUser === "0x") {
                 window.location.href = "/login";

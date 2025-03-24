@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Web3 from "web3";
-import { API_BASE_URL } from "../utils/backend.js";
 import {
-    setTokenFor,
     setCurrentUser,
     batchGetUserInfoFromWeb3,
     normalizeHex0x,
@@ -156,7 +154,6 @@ const Login = ({ title }) => {
 
             const data2 = await response2.json();
             const token = data2.token;
-            setTokenFor(account, token);
             setCurrentUser(account);
             const info = await getCurrentUserInfo();
 
@@ -219,16 +216,10 @@ const Login = ({ title }) => {
                         </label>
                         <div className="flex items-center gap-2">
                             {getRoleBadge(user.role)}
-                            {user.state === "unverified" ?
-                                <span className="px-3 py-1 bg-red-600 text-white text-xs rounded-full">
-                                    Unverified
-                                </span> : walletAddress === getCurrentUser() ?
-                                    <span className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
-                                        Current User
-                                    </span> :
-                                    <span className="px-3 py-1 bg-green-600 text-white text-xs rounded-full">
-                                        Verified
-                                    </span>
+                            {walletAddress === getCurrentUser() &&
+                                <span className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+                                    Current User
+                                </span>
                             }
                         </div>
                     </button>

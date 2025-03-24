@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "../utils/backend.js";
 import {
-    attachTokenForCurrentUser,
     getCurrentUser,
     getCurrentUserStatus,
     logoutCurrentUser,
 } from "../utils/token.js";
 import { restoreHref } from "../utils/nav.js";
+import Manager from "../artifacts/Manager_sol_Manager.json";
+import {getManagerAddr} from "../utils/backend.js";
+import Web3 from "web3";
 
 const Register = () => {
     const [loading, setLoading] = useState(false);
@@ -35,28 +36,19 @@ const Register = () => {
         setMessage("");
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/register`, {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({ email, nickname }),
-            });
+            const web3 = new Web3(window.ethereum)
+            const ManagerInstance = new web3.eth.Contract(Manager.abi, getManagerAddr());
+            await ManagerInstance.methods.addUser(email, nickname).send({ from: getCurrentUser() });
 
-            const data = await response.json();
+            setMessage("✅ Successfully registered! Redirecting in 3 seconds...");
+            setDone(true);
 
-            if (response.ok) {
-                setMessage("✅ Successfully registered! Redirecting in 3 seconds...");
-                setDone(true);
+            // ✅ 替换为你的 toast 系统
+            // showToast("success", "Successfully registered!");
 
-                // ✅ 替换为你的 toast 系统
-                // showToast("success", "Successfully registered!");
-
-                setTimeout(() => {
-                    restoreHref();
-                }, 3000);
-            } else {
-                setMessage(`❌ Error: ${data.error}`);
-                // showToast("error", data.error);
-            }
+            setTimeout(() => {
+                restoreHref();
+            }, 3000);
         } catch (error) {
             setMessage(`❌ Error: ${error.message}`);
             // showToast("error", error.message);

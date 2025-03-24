@@ -4,8 +4,8 @@ import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
 import VotingJson from "../artifacts/Voting_sol_Voting.json"; // 路径根据你项目结构调整
 import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json"; // 路径根据你项目结构调整
-import {attachTokenForCurrentUser, getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token";
-import {API_BASE_URL, getVotingNftAddr} from "../utils/backend.js";
+import {getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token";
+import {getManagerAddr, getVotingNftAddr} from "../utils/backend.js";
 import { useToast } from "../context/ToastContext";
 
 export default function CreateVote() {
@@ -52,7 +52,7 @@ export default function CreateVote() {
 
         try {
             setDeploying(true);
-            const votingNftAddress = await getVotingNftAddr();
+            const votingNftAddress = getVotingNftAddr();
 
             const from = normalizeHex0x(getCurrentUser());
             const Contract = new web3.eth.Contract(VotingJson.abi);
