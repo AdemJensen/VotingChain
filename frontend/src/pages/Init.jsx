@@ -149,13 +149,16 @@ const Init = () => {
                     You have joined the following network:
                 </p>}
                 {currentStep === "" && getManagerAddr() !== "" && <button
-                    disabled={true}
+                    onClick={() => {
+                        navigator.clipboard.writeText(normalizeHex0x(getManagerAddr()));
+                        toast("Network Address copied to clipboard", "success");
+                    }}
                     className="flex mb-2 px-4 py-2 shadow rounded w-full text-left bg-gray-100 hover:bg-gray-200"
                 >
                     {normalizeHex0x(getManagerAddr())}
                 </button>}
                 {currentStep === "" && <p className="text-gray-600 text-sm w-full text-left mb-4">
-                    You can choose to deploy or join the VotingChain Network:
+                    You can choose to deploy a new network or join an existing network:
                 </p>}
                 {currentStep === "" && <button
                     onClick={() => {setCurrentStep("join")}}
