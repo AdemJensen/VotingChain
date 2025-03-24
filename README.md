@@ -3,6 +3,8 @@
 VotingChain is a decentralized voting system based on Ethereum blockchain. It is designed to provide a secure, 
 transparent, and tamper-proof voting system for various scenarios. MIT License.
 
+> This project also comes with a fully decentralized version. It is available at branch `master-fd`.
+
 ## Features
 
 - **Candidate Based Voting**: Voters can vote for their favorite candidates who have been registered in the vote session.
@@ -11,6 +13,7 @@ transparent, and tamper-proof voting system for various scenarios. MIT License.
 - **Secure and Transparent**: The voting results are stored on the Ethereum blockchain, which is secure and tamper-proof.
 - **ERC-721 Based Voting Token**: Using ERC-721 tokens to represent the voting rights of voters.
 - **Multi-user Support**: The system supports multiple users, each with their own Ethereum account.
+- **Fully Operational Backend**: The backend is implemented in Golang and MySQL, which can handle large amounts of data.
 
 <table>
   <tr>
