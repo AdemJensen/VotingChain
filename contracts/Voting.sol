@@ -28,6 +28,7 @@ contract Voting {
         bool candidateNeedApproval;
         State state;
         Option[] options;
+        uint256 createdAt;
     }
 
     Vote public vote;

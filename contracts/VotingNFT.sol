@@ -5,7 +5,6 @@ import "./node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enu
 import "./node_modules/@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
-    bytes32 public constant ROOT_ROLE = keccak256("ROOT_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     struct VotingMetadata {
@@ -20,21 +19,15 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
 
     uint256 private nextTokenId;
 
-    constructor() ERC721("VotingParticipation", "VOTE-NFT") {
+    address public managerAddr;
+
+    constructor(address _managerAddr) ERC721("VotingParticipation", "VOTE-NFT") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(ROOT_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _managerAddr);
         nextTokenId = 1;
     }
 
-    // ============================== Management Related Functions ==================================
-
-    function addAdmin(address adminAddress) external onlyRole(ROOT_ROLE) {
-        grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
-    }
-
-    function removeAdmin(address adminAddress) external onlyRole(ROOT_ROLE) {
-        revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
-    }
+    // ============================== Minter Related Functions ==================================
 
     function addMinter(address votingContract) external onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, votingContract);
@@ -46,19 +39,6 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
 
     function isAuthorizedMinter(address minter) public view returns (bool) {
         return hasRole(MINTER_ROLE, minter);
-    }
-
-    function isAdministrator(address adminAddress) public view returns (bool) {
-        return hasRole(DEFAULT_ADMIN_ROLE, adminAddress);
-    }
-
-    function getAllAdmins() public view returns (address[] memory) {
-        uint256 count = getRoleMemberCount(DEFAULT_ADMIN_ROLE);
-        address[] memory admins = new address[](count);
-        for (uint256 i = 0; i < count; i++) {
-            admins[i] = getRoleMember(DEFAULT_ADMIN_ROLE, i);
-        }
-        return admins;
     }
 
     // ============================== NFT Related Functions ==================================
@@ -162,6 +142,16 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
         return tokens;
     }
 
+    function pageQueryTokensByUser(address user, uint page, uint pageSize) public view returns (TokenInfo[] memory) {
+        uint256[] memory tokenIds = getAllTokenIdsByUser(user);
+        uint256[] memory pageTokenIds = _pageQueryListReversed(page, pageSize, tokenIds.length);
+        TokenInfo[] memory tokens = new TokenInfo[](pageTokenIds.length);
+        for (uint256 i = 0; i < pageTokenIds.length; i++) {
+            tokens[i] = TokenInfo(pageTokenIds[i], ownerOf(pageTokenIds[i]), tokenMetadata[pageTokenIds[i]]);
+        }
+        return tokens;
+    }
+
     // ** 显式重写 supportsInterface 方法 **
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControlEnumerable) returns (bool) {
         return ERC721Enumerable.supportsInterface(interfaceId) || AccessControlEnumerable.supportsInterface(interfaceId);
@@ -169,5 +159,37 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
 
     function compareStrings(string memory _a, string memory _b) internal pure returns(bool) {
         return keccak256(abi.encodePacked(_a)) == keccak256(abi.encodePacked(_b));
+    }
+
+    // ============================== Utility Functions ==================================
+
+    function _pageQueryListReversed(uint page, uint pageSize, uint total) public pure returns (uint[] memory) {
+        require(pageSize > 0, "Page size must be > 0");
+
+        uint pageNumber = page - 1;
+        uint startIndex;
+
+        // pageNumber 从 0 开始计数
+        if ((pageNumber + 1) * pageSize > total) {
+            // 最后一页可能不满
+            if (pageNumber * pageSize >= total) {
+                // 超出边界
+                return new uint[](0);
+            }
+            startIndex = 0;
+        } else {
+            startIndex = total - (pageNumber + 1) * pageSize;
+        }
+
+        uint endIndex = total - pageNumber * pageSize;
+        uint length = endIndex - startIndex;
+
+        uint[] memory page = new uint[](length);
+        for (uint i = 0; i < length; i++) {
+            // 逆序读取
+            page[i] = endIndex - 1 - i;
+        }
+
+        return page;
     }
 }
