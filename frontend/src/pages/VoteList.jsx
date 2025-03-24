@@ -25,12 +25,6 @@ const TITLE_MAP = {
     "managed": "Managed Votes",
 }
 
-const API_MAP = {
-    "full": "/votes/page",
-    "mine": "/votes/mine",
-    "managed": "/votes/page",
-}
-
 const getPanelStateColor = (state) => {
     switch (state) {
         case "Init":
@@ -86,18 +80,16 @@ export default function VoteList( {mode} ) {
                     data = await Contract.methods.pageQueryVotes(page, PAGE_SIZE).call();
                     break;
                 case "mine":
-                    data = await Contract.methods.pageQueryUserParticipatedVotes(getCurrentUser(), page, PAGE_SIZE).call();
+                    data = await Contract.methods.pageQueryUserParticipatedVotes(page, PAGE_SIZE).call({ from: getCurrentUser() }) ;
                     break;
                 case "managed":
-                    data = await Contract.methods.pageQueryUserVotes(getCurrentUser(), page, PAGE_SIZE).call();
+                    data = await Contract.methods.pageQueryUserVotes(page, PAGE_SIZE).call({ from: getCurrentUser() });
                     break;
                 default:
                     window.location.href = "/404"
             }
-
-            const contractAddresses = data.votes.map(v => normalizeHex0x(v.contractAddr));
-            const createTimes = data.votes.map(v => v.create_time);
-
+            console.log("data", data);
+            const contractAddresses = data.votes.map(v => normalizeHex0x(v.contract_addr));
             const currentUser = getCurrentUser();
 
             const voteInfos = await Promise.all(contractAddresses.map(getVoteInfo));
@@ -106,14 +98,11 @@ export default function VoteList( {mode} ) {
                 if (!vote) return null;
 
                 const contractAddr = contractAddresses[i];
-                const createdAt = new Date(createTimes[i] * 1000).toISOString().split("T")[0];
 
                 const userInfo = await getUserParticipationInfo(currentUser, contractAddr);
                 console.log(vote);
                 return {
-                    id: data.votes[i].id,
                     contract: contractAddr,
-                    createdAt,
                     title: vote.title,
                     state: STATE_MAP[vote.state],
                     optionType: vote.optionType === 1n ? "Predefined Text Options" : "Candidate Registration Mode",
@@ -198,7 +187,7 @@ export default function VoteList( {mode} ) {
                     ) : (
                         <div className="space-y-4">
                             {votes.map((vote) => (
-                                <div key={vote.id} className="bg-gray-100 rounded-xl p-4 shadow-md hover:shadow-lg transition" style={{"cursor": "pointer"}} onClick={() => {
+                                <div key={vote.contract} className="bg-gray-100 rounded-xl p-4 shadow-md hover:shadow-lg transition" style={{"cursor": "pointer"}} onClick={() => {
                                     window.location.href = `/vote/${vote.contract}`;
                                 }}>
                                     <div>
@@ -207,7 +196,7 @@ export default function VoteList( {mode} ) {
                                                 <div>
                                                     <h3 className="text-xl font-bold mb-1">{vote.title}</h3>
                                                     <p className="text-sm text-gray-500">
-                                                        {vote.contract}, created at {vote.createdAt}
+                                                        {vote.contract}
                                                     </p>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2 justify-end">

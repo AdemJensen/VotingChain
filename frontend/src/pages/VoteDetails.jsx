@@ -10,7 +10,7 @@ import {
     getCurrentUserInfo,
     getGravatarAddress,
     getUserInfo,
-    hexEqual,
+    hexEqual, isEmptyHex,
     normalizeHex0x
 } from "../utils/token";
 import {getVotingNftAddr} from "../utils/backend";
@@ -91,6 +91,7 @@ export default function VoteDetails() {
                         break;
                 }
             }
+            // console.log("OK8")
             console.log("pendingCandidates:", pendingCandidates);
             setPendingCandidates(pendingCandidates);
 
@@ -102,10 +103,9 @@ export default function VoteDetails() {
             setHasRegistrationState(regState);
             setCurrentState(parseInt(vote.state));
             setOptions(vote.options);
-
             // for each option, get the candidate info
             for (const opt of vote.options) {
-                if (!opt.candidate || opt.candidate === "") continue;
+                if (isEmptyHex(opt.candidate)) continue;
                 candidateInfo[opt.candidate] = await getUserInfo(opt.candidate);
             }
             setCandidateInfoLookup(candidateInfo);

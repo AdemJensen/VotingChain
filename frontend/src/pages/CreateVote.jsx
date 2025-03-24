@@ -3,7 +3,7 @@ import Web3 from "web3";
 import TopNav from "../components/TopNav";
 import Sidebar from "../components/Sidebar";
 import VotingJson from "../artifacts/Voting_sol_Voting.json"; // 路径根据你项目结构调整
-import VotingNFTJson from "../artifacts/VotingNFT_sol_VotingNFT.json"; // 路径根据你项目结构调整
+import Manager from "../artifacts/Manager_sol_Manager.json"; // 路径根据你项目结构调整
 import {getCurrentUser, getCurrentUserInfo, normalizeHex0x} from "../utils/token";
 import {getManagerAddr, getVotingNftAddr} from "../utils/backend.js";
 import { useToast } from "../context/ToastContext";
@@ -79,24 +79,11 @@ export default function CreateVote() {
 
             const votingAddress = votingInstance.options.address;
 
-            // Call VotingNFT.addMinter(votingAddress)
-            const votingNFT = new web3.eth.Contract(VotingNFTJson.abi, votingNftAddress);
-            const tx = await votingNFT.methods.addMinter(votingAddress.toString()).send({ from });
+            // Call add vote
+            const managerInstance = new web3.eth.Contract(Manager.abi, getManagerAddr());
+            const tx = await managerInstance.methods.addVote(normalizeHex0x(votingAddress)).send({ from });
 
             console.log("✅ addMinter success:", tx);
-
-            const response = await fetch(API_BASE_URL + "/votes/create", {
-                method: "POST",
-                headers: attachTokenForCurrentUser({ "Content-Type": "application/json" }),
-                body: JSON.stringify({
-                    vote_address: votingAddress.toString(),
-                })
-            });
-            const res = await response.json();
-            if (!response.ok) {
-                toast("Failed to build add admin to db: " + res.error, "error");
-                return;
-            }
 
             setContractAddress(votingAddress);
             toast("Voting contract deployed and granted successfully!", "success");

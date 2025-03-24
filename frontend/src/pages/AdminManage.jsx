@@ -5,7 +5,7 @@ import Sidebar from "../components/SideBar.jsx";
 import {waitForReceipt} from "../utils/contracts.js";
 import { useToast } from "../context/ToastContext";
 import Web3 from "web3";
-import {normalizeHex0x} from "../utils/token.js";
+import {getCurrentUser, normalizeHex0x} from "../utils/token.js";
 import {getManagerAddr} from "../utils/backend.js";
 
 export default function AdminManage() {
@@ -25,8 +25,8 @@ export default function AdminManage() {
                 email: info.email,
                 nickname: info.nickname,
                 role: info.role,
-                wallet_address: info.walletAddr,
-                create_time: info.createdAt,
+                wallet_address: info.wallet_address,
+                create_time: info.create_time,
             };
         }));
         console.log(admins)
@@ -37,15 +37,9 @@ export default function AdminManage() {
         try {
             const web3 = new Web3(window.ethereum)
             const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
-            const tx = await Contract.methods.addAdmin(normalizeHex0x(newAddress)).call();
-            const receipt = await waitForReceipt(web3, tx)
-            console.log("Transaction receipt:", receipt);
-            // if error in receipt, throw error
-            if (receipt.status === false) {
-                console.error("Transaction error:", receipt);
-                toast("Transaction error: " + receipt, "error");
-                return;
-            }
+            console.log("newAddress", normalizeHex0x(newAddress))
+            console.log("getCurrentUser", getCurrentUser())
+            await Contract.methods.addAdmin(normalizeHex0x(newAddress)).send({ from: getCurrentUser() });
             setNewAddress("");
             setShowAddModal(false);
             await fetchAdmins()
@@ -60,15 +54,7 @@ export default function AdminManage() {
         try {
             const web3 = new Web3(window.ethereum)
             const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
-            const tx = await Contract.methods.removeAdmin(normalizeHex0x(deleteTarget)).call();
-            const receipt = await waitForReceipt(web3, tx)
-            console.log("Transaction receipt:", receipt);
-            // if error in receipt, throw error
-            if (receipt.status === false) {
-                console.error("Transaction error:", receipt);
-                toast("Transaction error: " + receipt, "error");
-                return;
-            }
+            await Contract.methods.removeAdmin(normalizeHex0x(deleteTarget)).send({ from: getCurrentUser() });
             setDeleteTarget(null);
             await fetchAdmins()
             toast("Successfully removed admin!", "success");
@@ -118,7 +104,7 @@ export default function AdminManage() {
 
                                 {/* 地址 */}
                                 <p className="text-sm text-gray-500 break-all mt-3">
-                                    0x{admin.wallet_address}
+                                    {admin.wallet_address}
                                 </p>
 
                                 {/* 删除按钮 */}
@@ -167,7 +153,7 @@ export default function AdminManage() {
                     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded shadow-lg w-150">
                             <h2 className="text-xl font-bold mb-4">Confirm Remove Admin</h2>
-                            <p className="mb-4" style={{lineBreak: "anywhere"}}>Are you sure you want to remove admin: 0x{deleteTarget} ?</p>
+                            <p className="mb-4" style={{lineBreak: "anywhere"}}>Are you sure you want to remove admin: {deleteTarget} ?</p>
                             <div className="flex justify-end gap-2">
                                 <button
                                     onClick={() => setDeleteTarget(null)}

@@ -21,8 +21,8 @@ const AppRoutes = () => {
     useEffect( () => {
         const fetchUserStatus = async () => {
             const ui = await getUserInfo(getCurrentUser())
-            console.log("ui", ui)
-            console.log("getCurrentUser", getCurrentUser())
+            // console.log("ui", ui)
+            // console.log("getCurrentUser", getCurrentUser())
             setUserInfo(ui)
             if (!ui) {
                 setUserState("unverified")
@@ -49,8 +49,8 @@ const AppRoutes = () => {
         return <div>Loading...</div>
     }
 
-    console.log("userInfo", userInfo);
-    console.log("userState", userState);
+    // console.log("userInfo", userInfo);
+    // console.log("userState", userState);
     switch (userState) {
         case "":
         case "unverified":

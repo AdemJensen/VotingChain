@@ -20,9 +20,18 @@ export function hexEqual(hex1, hex2) {
     return normalizeHex(hex1) === normalizeHex(hex2);
 }
 
+export function isEmptyHex(hex) {
+    if (!hex) {
+        return true;
+    }
+    const nh = normalizeHex(hex);
+    // if all zero, then it's empty
+    return nh === "" || nh === "0".repeat(nh.length);
+}
+
 export function normalizeHex0x(hex) {
     hex = normalizeHex(hex);
-    return "0x" + hex;
+    return hex === "" ? "" : "0x" + hex;
 }
 
 export function logoutCurrentUser() {
@@ -36,7 +45,8 @@ export function setCurrentUser(walletAddr) {
 }
 
 export function getCurrentUser() {
-    return normalizeHex0x(localStorage.getItem('currentUser')) ?? "";
+    const ls = normalizeHex(localStorage.getItem('currentUser') ?? "");
+    return ls === "" ? "" : normalizeHex0x(ls);
 }
 
 async function getUserStatus(web3, walletAddr) {
@@ -73,6 +83,9 @@ async function batchGetUserInfo(accounts) {
     const Contract = new web3.eth.Contract(Manager.abi, getManagerAddr());
     for (let i = 0; i < accounts.length; i++) {
         const account = normalizeHex0x(accounts[i])
+        if (isEmptyHex(account)) {
+            continue;
+        }
         const info = await Contract.methods.getUserByAddress(account).call();
         userMap[account] = {
             wallet_address: account,
@@ -88,8 +101,17 @@ async function batchGetUserInfo(accounts) {
 export async function getUserInfo(account) {
     account = normalizeHex0x(account);
     const info = await batchGetUserInfo([account]);
-    console.log("User info: ", info);
-    console.log("User info[account]: ", info[account]);
+    // console.log("User info: ", info);
+    // console.log("User info[account]: ", info[account]);
+    if (!info[account]) {
+        return {
+            wallet_address: account,
+            nickname: "",
+            email: "",
+            role: "",
+            state: "",
+        };
+    }
     return info[account];
 }
 

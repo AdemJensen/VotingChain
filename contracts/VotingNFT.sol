@@ -144,10 +144,10 @@ contract VotingNFT is ERC721Enumerable, AccessControlEnumerable {
 
     function pageQueryTokensByUser(address user, uint page, uint pageSize) public view returns (TokenInfo[] memory) {
         uint256[] memory tokenIds = getAllTokenIdsByUser(user);
-        uint256[] memory pageTokenIds = _pageQueryListReversed(page, pageSize, tokenIds.length);
-        TokenInfo[] memory tokens = new TokenInfo[](pageTokenIds.length);
-        for (uint256 i = 0; i < pageTokenIds.length; i++) {
-            tokens[i] = TokenInfo(pageTokenIds[i], ownerOf(pageTokenIds[i]), tokenMetadata[pageTokenIds[i]]);
+        uint256[] memory pageTokenIdsIdx = _pageQueryListReversed(page, pageSize, tokenIds.length);
+        TokenInfo[] memory tokens = new TokenInfo[](pageTokenIdsIdx.length);
+        for (uint256 i = 0; i < pageTokenIdsIdx.length; i++) {
+            tokens[i] = TokenInfo(tokenIds[pageTokenIdsIdx[i]], ownerOf(tokenIds[pageTokenIdsIdx[i]]), tokenMetadata[tokenIds[pageTokenIdsIdx[i]]]);
         }
         return tokens;
     }

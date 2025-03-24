@@ -69,7 +69,7 @@ export default function Profile() {
                             <label className="block font-semibold mb-1">Bound Wallet Address</label>
                             <input
                                 type="text"
-                                value={"0x" + userInfo.wallet_address}
+                                value={userInfo.wallet_address}
                                 readOnly
                                 className="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 mb-4"
                             />

@@ -8,11 +8,11 @@ contract Manager is AccessControlEnumerable {
     bytes32 public constant ROOT_ROLE = keccak256("ROOT_ROLE");
 
     struct User {
-        address walletAddr;
+        address wallet_address;
         string email;
         string nickname;
         string role;
-        uint256 createdAt;
+        uint256 create_time;
     }
 
     string public constant UserRoleUser = "user";
@@ -20,8 +20,8 @@ contract Manager is AccessControlEnumerable {
     string public constant UserRoleRoot = "root";
 
     struct Vote {
-        address contractAddr;
-        address ownerAddr;
+        address contract_addr;
+        address owner_addr;
     }
 
     address public owner;
@@ -34,6 +34,7 @@ contract Manager is AccessControlEnumerable {
     Vote[] public votes;
     mapping(address => uint256) public voteIndex;
     mapping(address => address[]) public userVotes;
+    address[] public usersInvolved;
 
     // ============================== Constructors ==================================
 
@@ -126,7 +127,7 @@ contract Manager is AccessControlEnumerable {
     // ============================== Vote Related Functions ==================================
 
     function addVote(address contractAddr) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(voteIndex[contractAddr] == 0, "Vote already exists");
+        require(votes.length == 0 || votes[voteIndex[contractAddr]].contract_addr != contractAddr, "Vote already exists");
 
         // grant access
         require(nftAddr != address(0), "NFT contract address not set");
@@ -136,6 +137,7 @@ contract Manager is AccessControlEnumerable {
         voteIndex[contractAddr] = votes.length;
         votes.push(Vote(contractAddr, msg.sender));
         userVotes[msg.sender].push(contractAddr);
+        usersInvolved.push(msg.sender);
     }
 
     struct VotePageQueryResult {

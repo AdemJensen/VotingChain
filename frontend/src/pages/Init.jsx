@@ -43,6 +43,7 @@ const Init = () => {
         try {
             await setNetwork(newManagerAddr);
             toast("Successfully joined the network!", "success");
+            setCurrentStep("done");
         } catch (e) {
             toast("Error: " + e.message, "error");
         }

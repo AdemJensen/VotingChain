@@ -42,7 +42,8 @@ export async function deployContract(walletAddress, abi, bytecode) {
 export async function waitForReceipt(web3, txHash, interval = 1000, timeout = 60000) {
     const start = Date.now();
     while (true) {
-        const receipt = await web3.eth.getTransactionReceipt(txHash);
+        const receipt
+            = await web3.eth.getTransactionReceipt(txHash);
         if (receipt) return receipt;
         if (Date.now() - start > timeout) throw new Error("Timeout waiting for receipt");
         await new Promise(resolve => setTimeout(resolve, interval));
