@@ -118,7 +118,7 @@ contract Voting {
 
     function registerVoter() public {
         require(votingNFT.isAuthorizedMinter(address(this)), "Voting contract not authorized");
-        require(vote.state == State.Registration || (vote.state == State.Voting && vote.needRegistration == false), "Voting contract not in registration state");
+        require((vote.state == State.Registration && vote.needRegistration) || (vote.state == State.Voting && !vote.needRegistration), "Voting contract not in registration state");
         votingNFT.mint(msg.sender, address(this), UserVoteRoleVoter);
     }
 
