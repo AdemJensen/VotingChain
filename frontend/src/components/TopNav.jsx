@@ -63,7 +63,7 @@ export default function TopNav() {
     return (
         <div className="flex justify-between items-center bg-white shadow px-6 py-4">
             <div className="flex items-center">
-                <img src="/vite.svg" alt="80px"/>
+                <img src="/logo.png" width="50px" alt="80px"/>
                 <h1 className="text-xl font-bold ml-4">VotingChain</h1>
                 <button className="px-4 py-2 ml-8 rounded-lg transition-all duration-200 bg-gray-200 hover:bg-gray-300 text-gray-600" onClick={onInit}>
                     Network: {getManagerAddr()}
